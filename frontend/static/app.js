@@ -25,7 +25,7 @@ function app() {
         if (pid) { this.loadProject(pid); this.view = 'members'; }
       } else if (h.startsWith('/projects/')) {
         const pid = h.match(/\/projects\/(\d+)/)?.[1];
-        if (pid) this.loadProject(pid);
+        if (pid) { this.loadProject(pid); this.view = 'board'; }
       } else {
         this.view = 'projects';
       }
@@ -86,7 +86,6 @@ function app() {
       this.currentRole = data.current_role;
       const mr = await fetch(`/api/projects/${pid}/members`, { headers: this.authHeaders() });
       this.members = mr.ok ? await mr.json() : [];
-      this.view = 'board';
     },
 
     async triggerOverdue() {

@@ -23,6 +23,7 @@ function taskBoard(parent) {
         'ms-done': m.status === 'done',
         'ms-locked': m.status === 'locked'
       };
-    }
+    },
+    updateStatus(taskId, event) { parent.updateTaskStatus(taskId, event); }
   }
 }

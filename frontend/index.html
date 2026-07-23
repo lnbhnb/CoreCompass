@@ -355,7 +355,7 @@
             <template x-for="g in groupByMilestone()" :key="g.milestone.id">
               <article class="milestone-card" :class="milestoneClass(g.milestone)">
                 <header class="ms-head">
-                  <div class="ms-index" x-text="String(g.milestone.seq + 1).padStart(2, '0')"></div>
+                  <div class="ms-index" x-text="String(g.milestone.order_idx + 1).padStart(2, '0')"></div>
                   <div class="ms-title">
                     <h3 x-text="g.milestone.name"></h3>
                     <span class="ms-type" x-text="artifactLabel(g.milestone.expected_artifact_type)"></span>
@@ -375,10 +375,10 @@
                         </span>
                       </div>
                       <template x-if="t.status === 'planned'">
-                        <button class="btn-mini" @click="$root.updateTaskStatus(t.id, 'start')">开始</button>
+                        <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
                       </template>
                       <template x-if="t.status === 'doing'">
-                        <button class="btn-mini" @click="$root.updateTaskStatus(t.id, 'complete')">完成</button>
+                        <button class="btn-mini" @click="updateStatus(t.id, 'complete')">完成</button>
                       </template>
                     </li>
                   </template>
