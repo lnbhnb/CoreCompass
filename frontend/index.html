@@ -80,6 +80,73 @@
 
     <!-- 右侧主内容区 -->
     <main class="canvas">
+      <!-- 登录视图 -->
+      <template x-if="view === 'login'">
+        <section class="auth-view" x-data="authView($data)">
+          <div class="auth-card">
+            <span class="eyebrow">AUTH · 01</span>
+            <h1>启航前请登记</h1>
+            <div class="auth-tabs">
+              <button :class="{active: mode==='login'}" @click="mode='login'">登录</button>
+              <button :class="{active: mode==='register'}" @click="mode='register'">注册</button>
+            </div>
+            <form @submit.prevent="submit()">
+              <label class="field">
+                <span>用户名</span>
+                <input x-model="form.username" required>
+              </label>
+              <label class="field">
+                <span>密码</span>
+                <input type="password" x-model="form.password" required>
+              </label>
+              <label class="field" x-show="mode==='register'" x-cloak>
+                <span>显示名</span>
+                <input x-model="form.display_name" :required="mode==='register'">
+              </label>
+              <p class="auth-error" x-show="error" x-text="error" x-cloak></p>
+              <button class="btn-primary" :disabled="loading">
+                <span x-text="loading ? '处理中…' : (mode==='login' ? '登录' : '注册')"></span>
+              </button>
+            </form>
+            <div class="auth-join">
+              <span class="kb-label">队员？输入队长给的邀请码</span>
+              <div class="join-row">
+                <input x-model="inviteCode" placeholder="6 位邀请码" maxlength="6">
+                <button class="btn-ghost" @click="join()" :disabled="loading || !inviteCode">加入</button>
+              </div>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <!-- 项目列表视图 -->
+      <template x-if="view === 'projects'">
+        <section class="projects-view" x-data="projectList($data)" x-init="init()">
+          <header class="board-header">
+            <div class="title-block">
+              <span class="eyebrow">CHART · MY PROJECTS</span>
+              <h1>我的航行</h1>
+            </div>
+            <div class="header-actions">
+              <button class="btn-accent" @click="$root.navigate('/projects/new')">+ 启动新航行</button>
+            </div>
+          </header>
+          <div class="project-grid">
+            <template x-for="(p, idx) in projects" :key="p.id">
+              <article class="project-card" @click="$root.navigate('/projects/' + p.id)">
+                <div class="ms-index" x-text="String(idx + 1).padStart(2, '0')"></div>
+                <div class="pc-body">
+                  <h3 x-text="p.name"></h3>
+                  <span class="pc-meta" x-text="progressSummary(p)"></span>
+                </div>
+                <span class="pc-role" x-text="roleLabel(p)"></span>
+              </article>
+            </template>
+            <p class="empty-state" x-show="!projects.length && !loading">还没有项目。启动一次新航行吧。</p>
+          </div>
+        </section>
+      </template>
+
       <!-- 创建项目视图 -->
       <template x-if="view === 'create'">
         <section class="create-view">
@@ -323,6 +390,8 @@
   <script src="/static/components/upload-panel.js"></script>
   <script src="/static/components/replan-modal.js"></script>
   <script src="/static/components/notify-log.js"></script>
+  <script src="/static/components/auth.js"></script>
+  <script src="/static/components/project-list.js"></script>
 </body>
 
 </html>
