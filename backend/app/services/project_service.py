@@ -4,8 +4,11 @@ from app.llm import client
 from app.services import knowledge_service
 
 
-def create_project_with_plan(name, deadline, team_size, topic_desc):
+def create_project_with_plan(name, deadline, team_size, topic_desc, creator_id=None):
     pid = models.create_project(name, deadline, team_size, topic_desc)
+    if creator_id:
+        models.set_project_creator(pid, creator_id)
+        models.add_project_member(pid, creator_id, "leader")
 
     # 匹配知识库素材
     refs = knowledge_service.match_references(topic_desc)

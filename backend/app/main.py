@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.db import init_db
-from app.routes import projects, validate, replan, notify, tasks
+from app.routes import projects, validate, replan, notify, tasks, auth
 from app.services import notify_service
 
 app = FastAPI(title="CoreCompass")
@@ -37,6 +37,7 @@ app.include_router(validate.router)
 app.include_router(replan.router)
 app.include_router(notify.router)
 app.include_router(tasks.router)
+app.include_router(auth.router)
 
 
 frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
