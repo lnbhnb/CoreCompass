@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.db import init_db
-from app.routes import projects, validate
+from app.routes import projects, validate, replan
 
 app = FastAPI(title="CoreCompass")
 app.add_middleware(
@@ -26,6 +26,8 @@ def health():
 
 
 app.include_router(projects.router)
+app.include_router(validate.router)
+app.include_router(replan.router)
 
 
 frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"
