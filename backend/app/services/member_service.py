@@ -35,3 +35,26 @@ def join_with_code(code, member_token):
     models.add_project_member(invite["project_id"], member["id"], "member")
     models.mark_invite_used(invite["id"], member["id"])
     return {"project_id": invite["project_id"]}
+
+
+def get_member_progress(project_id):
+    """返回项目每个成员的进度统计 + 待审阅任务列表。"""
+    members = models.list_project_members(project_id)
+    tasks = models.list_tasks_by_project(project_id)
+    result = []
+    for m in members:
+        my_tasks = [t for t in tasks if t.get("assignee_id") == m["id"]]
+        done = sum(1 for t in my_tasks if t["status"] == "done")
+        pending_review = sum(1 for t in my_tasks if t.get("review_status") == "pending_review")
+        todo = sum(1 for t in my_tasks if t["status"] in ("planned", "doing"))
+        total = len(my_tasks)
+        pct = round(done / total * 100) if total else 0
+        result.append({
+            "user": {"id": m["id"], "username": m["username"], "display_name": m["display_name"]},
+            "role": m["role"],
+            "total": total, "done": done,
+            "pending_review": pending_review, "todo": todo,
+            "percent": pct,
+            "tasks": my_tasks})
+    pending = [t for t in tasks if t.get("review_status") == "pending_review"]
+    return {"members": result, "pending_review": pending}
