@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.db import init_db
-from app.routes import projects, validate, replan, notify
+from app.routes import projects, validate, replan, notify, tasks
 from app.services import notify_service
 
 app = FastAPI(title="CoreCompass")
@@ -19,6 +19,12 @@ app.add_middleware(
 @app.on_event("startup")
 def startup():
     init_db()
+    notify_service.start_scheduler()
+
+
+@app.on_event("shutdown")
+def shutdown():
+    notify_service.stop_scheduler()
 
 
 @app.get("/health")
@@ -29,6 +35,8 @@ def health():
 app.include_router(projects.router)
 app.include_router(validate.router)
 app.include_router(replan.router)
+app.include_router(notify.router)
+app.include_router(tasks.router)
 
 
 frontend_dir = Path(__file__).resolve().parent.parent.parent / "frontend"

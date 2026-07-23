@@ -35,6 +35,7 @@
           <h2 x-text="project?.name"></h2>
           <span class="badge" x-text="project?.status"></span>
           <button @click="triggerOverdue()">模拟偏航（标记 doing 为逾期）</button>
+          <button @click="$root._replan.propose()">触发重规划</button>
         </div>
 
         <div x-data="taskBoard($data)" class="board">
@@ -48,6 +49,12 @@
                     <span x-text="t.title"></span>
                     <span class="tag" x-text="statusLabel(t.status)"></span>
                     <span class="tag" x-text="priorityLabel(t.priority)"></span>
+                    <template x-if="t.status === 'planned'">
+                      <button @click="$root.updateTaskStatus(t.id, 'start')">开始</button>
+                    </template>
+                    <template x-if="t.status === 'doing'">
+                      <button @click="$root.updateTaskStatus(t.id, 'complete')">完成</button>
+                    </template>
                   </li>
                 </template>
               </ul>
@@ -67,13 +74,59 @@
             </div>
           </template>
         </div>
+
+        <!-- 通知日志 -->
+        <div x-data="notifyLog($data)" x-init="init()" class="panel notify-log" style="margin-top:24px">
+          <h3>通知日志 <button @click="testPush()">测试推送飞书</button></h3>
+          <ul>
+            <template x-for="log in logs" :key="log.id">
+              <li :class="log.status">
+                <span x-text="log.created_at"></span>
+                <span x-text="log.type"></span>
+                <span x-text="log.status"></span>
+                <p x-text="log.content"></p>
+              </li>
+            </template>
+          </ul>
+        </div>
       </div>
     </template>
+
+    <!-- 重规划模态 -->
+    <div x-data="replanModal($data)" x-init="_replan = $data._replan = this" x-show="open" class="modal-overlay"
+      @click.self="open=false" style="display:none">
+      <div class="modal">
+        <h3>动态重算 · 砍需求提案</h3>
+        <template x-if="loading">
+          <p>AI 分析中...</p>
+        </template>
+        <template x-if="!loading && proposal">
+          <div>
+            <p>缺口：<strong x-text="gapDays"></strong> 人天</p>
+            <p x-text="proposal.rationale"></p>
+            <div x-show="proposal.cut_tasks?.length">
+              <p>建议砍掉的任务 ID：<span x-text="proposal.cut_tasks?.join(', ')"></span></p>
+            </div>
+            <div x-show="proposal.downgrade_tasks?.length">
+              <p>建议降级的任务：
+                <template x-for="d in proposal.downgrade_tasks" :key="d.id">
+                  <span x-text="`#${d.id} ${d.from}→${d.to}`"></span>
+                </template>
+              </p>
+            </div>
+            <button @click="apply()" :disabled="applying">确认应用</button>
+            <button @click="open=false">取消</button>
+          </div>
+        </template>
+      </div>
+    </div>
   </main>
   <script src="/static/app.js"></script>
   <script src="/static/components/project-create.js"></script>
   <script src="/static/components/task-board.js"></script>
   <script src="/static/components/upload-panel.js"></script>
+  <script src="/static/components/replan-modal.js"></script>
+  <script src="/static/components/notify-log.js"></script>
 </body>
 
 </html>

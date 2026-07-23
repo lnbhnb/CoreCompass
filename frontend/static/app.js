@@ -31,6 +31,14 @@ function app() {
 
     async refresh() {
       if (this.project) await this.loadProject(this.project.id);
+    },
+
+    async updateTaskStatus(taskId, event) {
+      await fetch(`/api/tasks/${taskId}/status`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ event })
+      });
+      await this.loadProject(this.project.id);
     }
   }
 }

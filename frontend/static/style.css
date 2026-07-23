@@ -123,3 +123,43 @@ button {
 button:disabled {
   opacity: 0.5;
 }
+
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+}
+
+.modal {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 500px;
+  width: 90%;
+}
+
+.modal h3 {
+  margin-top: 0;
+}
+
+.notify-log ul {
+  list-style: none;
+  padding: 0;
+}
+
+.notify-log li {
+  padding: 8px 0;
+  border-bottom: 1px solid #eee;
+}
+
+.notify-log li.sent {
+  color: #16a34a;
+}
+
+.notify-log li.failed {
+  color: #dc2626;
+}
