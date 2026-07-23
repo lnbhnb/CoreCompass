@@ -219,3 +219,23 @@ def list_projects_for_user(user_id):
 def set_project_creator(project_id, user_id):
     with db.get_conn() as conn:
         conn.execute("UPDATE projects SET creator_id=? WHERE id=?", (user_id, project_id))
+
+
+# ============ 邀请码 ============
+def create_invite(project_id, code, expires_at):
+    with db.get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO invite_codes(project_id, code, expires_at) VALUES(?,?,?)",
+            (project_id, code, expires_at))
+        return cur.lastrowid
+
+
+def get_invite_by_code(code):
+    with db.get_conn() as conn:
+        row = conn.execute("SELECT * FROM invite_codes WHERE code=?", (code,)).fetchone()
+        return dict(row) if row else None
+
+
+def mark_invite_used(invite_id, user_id):
+    with db.get_conn() as conn:
+        conn.execute("UPDATE invite_codes SET used_by_user_id=? WHERE id=?", (user_id, invite_id))
