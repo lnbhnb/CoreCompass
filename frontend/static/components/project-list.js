@@ -23,6 +23,7 @@ function projectList(parent) {
     },
     progressSummary(p) {
       return `${p.team_size} 人团队`;
-    }
+    },
+    go(path) { parent.navigate(path); }
   }
 }

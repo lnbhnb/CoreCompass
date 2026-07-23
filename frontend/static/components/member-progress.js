@@ -53,6 +53,7 @@ function memberProgress(parent) {
 
     downloadUrl(taskId) {
       return `/api/tasks/${taskId}/submission`;
-    }
+    },
+    go(path) { parent.navigate(path); }
   }
 }

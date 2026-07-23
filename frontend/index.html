@@ -139,12 +139,12 @@
               <h1>我的航行</h1>
             </div>
             <div class="header-actions">
-              <button class="btn-accent" @click="$root.navigate('/projects/new')">+ 启动新航行</button>
+              <button class="btn-accent" @click="go('/projects/new')">+ 启动新航行</button>
             </div>
           </header>
           <div class="project-grid">
             <template x-for="(p, idx) in projects" :key="p.id">
-              <article class="project-card" @click="$root.navigate('/projects/' + p.id)">
+              <article class="project-card" @click="go('/projects/' + p.id)">
                 <div class="ms-index" x-text="String(idx + 1).padStart(2, '0')"></div>
                 <div class="pc-body">
                   <h3 x-text="p.name"></h3>
@@ -170,7 +170,7 @@
               <template x-if="$root.currentRole === 'leader'">
                 <button class="btn-accent" @click="generateInvite()">+ 生成邀请码</button>
               </template>
-              <button class="btn-ghost" @click="$root.navigate('/projects/' + $root.project.id)">← 回看板</button>
+              <button class="btn-ghost" @click="go('/projects/' + $root.project.id)">← 回看板</button>
             </div>
           </header>
 
@@ -330,6 +330,7 @@
               </div>
             </div>
             <div class="header-actions">
+              <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
               <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
               <button class="btn-accent" @click="$root._replan.propose()">触发重规划</button>
             </div>
