@@ -84,6 +84,8 @@ function app() {
       this.tasks = data.tasks;
       this.usedReferences = data.used_references || null;
       this.currentRole = data.current_role;
+      const mr = await fetch(`/api/projects/${pid}/members`, { headers: this.authHeaders() });
+      this.members = mr.ok ? await mr.json() : [];
       this.view = 'board';
     },
 
