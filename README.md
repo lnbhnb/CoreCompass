@@ -47,6 +47,21 @@ APScheduler 定时扫描逾期任务，按项目聚合后通过飞书 webhook **
 
 > 飞书、钉钉的提醒依赖人触发；CoreCompass 的 Agent 主动巡检并推送。
 
+## 团队协作（轻量协作版）
+
+在三大核心卖点之上，内置轻量协作能力，无需复杂部署即可让小团队用起来：
+
+| 能力 | 说明 |
+|---|---|
+| 身份认证 | 注册/登录，PBKDF2 密码哈希，随机 token 存 DB |
+| 角色权限 | 队长（建项目/分配任务/审阅/生成邀请码）、队员（认领/提交产物/看进度）严格分工 |
+| 多项目管理 | 一个用户可参与多个项目，按 `project_members` 关联 |
+| 邀请码加入 | 队长生成 6 位邀请码（7 天有效），队员注册后输码加入项目 |
+| 任务审阅 | 队员提交产物 → 队长审阅（通过/拒绝）→ 通知，与里程碑自动验收独立并行 |
+| 成员进度 | 队长看全队完成率 + 待审阅队列；队员只看自己 |
+
+> 任务审阅管"人有没有认真做"，里程碑校验管"产物结构合不合规"，两者互不阻塞。
+
 ## 目标用户
 
 - **主要用户：** 高校学生团队（3-5 人），参加课程设计、毕业设计、创新竞赛
@@ -133,12 +148,13 @@ uvicorn app.main:app --reload --port 8000
 
 浏览器打开 http://localhost:8000
 
-### 5. Demo 三段式
+### 5. Demo 四段式
 
-1. **创建项目**：填入课题、截止日期、团队人数 → Agent 生成里程碑和任务
-2. **硬验收**：在里程碑上传文件 → 不合规红色锁定 / 合规绿色通过
-3. **动态重算**：点"模拟偏航" → 点"触发重规划" → 确认应用 → 看板刷新
-4. **主动打扰**：点"测试推送飞书" → 飞书群收到 Agent 消息
+1. **创建项目**：注册队长 → 填入课题、截止日期、团队人数 → Agent 生成里程碑和任务
+2. **团队协作**：成员进度页生成邀请码 → 队员注册输码加入 → 分配/认领/提交/审阅任务
+3. **硬验收**：在里程碑上传文件 → 不合规红色锁定 / 合规绿色通过
+4. **动态重算**：点"模拟偏航" → 点"触发重规划" → 确认应用 → 看板刷新
+5. **主动打扰**：点"测试推送飞书" → 飞书群收到 Agent 消息
 
 ## 使用范例
 
@@ -213,7 +229,7 @@ cd backend
 pytest -v
 ```
 
-37 个测试全绿，覆盖：状态机转换、5 类文件校验、产能计算、重规划铁律、飞书推送、LLM JSON 解析、端到端三段式闭环、边界用例、知识库匹配。
+67 个测试全绿，覆盖：状态机转换、5 类文件校验、产能计算、重规划铁律、飞书推送、LLM JSON 解析、端到端三段式闭环、边界用例、知识库匹配、用户认证、权限校验、邀请码、任务审阅。
 
 ## 项目结构
 
@@ -223,35 +239,46 @@ CoreCompass/
 │   ├── app/
 │   │   ├── main.py              # FastAPI 入口
 │   │   ├── config.py            # 环境配置
-│   │   ├── db.py                # SQLite 初始化
-│   │   ├── models.py            # 数据访问层
-│   │   ├── state_machine.py     # 任务/里程碑/项目状态机
-│   │   ├── routes/              # 5 个路由模块
+│   │   ├── db.py                # SQLite 初始化 + 字段迁移
+│   │   ├── models.py            # 数据访问层（项目/任务/里程碑/用户/成员/邀请码/审阅）
+│   │   ├── state_machine.py     # 任务/里程碑/项目/审阅 状态机
+│   │   ├── deps.py              # 认证与权限依赖（require_member/require_leader）
+│   │   ├── routes/              # 8 个路由模块
 │   │   │   ├── projects.py      # 项目 CRUD + 创建时拆解
 │   │   │   ├── validate.py      # 硬验收
 │   │   │   ├── replan.py        # 动态重算
 │   │   │   ├── notify.py        # 主动打扰
-│   │   │   └── tasks.py         # 任务打卡
-│   │   ├── services/            # 4 个业务服务
+│   │   │   ├── tasks.py         # 任务打卡（带鉴权）
+│   │   │   ├── auth.py          # 注册/登录/登出/加入项目
+│   │   │   ├── reviews.py       # 任务分配/认领/提交/审阅
+│   │   │   └── members.py       # 邀请码/成员列表/进度统计
+│   │   ├── services/            # 7 个业务服务
 │   │   │   ├── project_service.py
 │   │   │   ├── validate_service.py
 │   │   │   ├── replan_service.py
-│   │   │   └── notify_service.py
+│   │   │   ├── notify_service.py
+│   │   │   ├── auth_service.py  # PBKDF2 哈希 + token
+│   │   │   ├── member_service.py# 邀请码 + 进度统计
+│   │   │   └── review_service.py# 任务审阅流转
 │   │   └── llm/                 # LLM 客户端 + Prompts
-│   ├── tests/                   # 29 个测试
+│   ├── tests/                   # 67 个测试
 │   └── requirements.txt
 ├── frontend/
-│   ├── index.html               # 单页应用
+│   ├── index.html               # 单页应用（航海罗盘仪表风格）
 │   └── static/
-│       ├── app.js               # 主组件
+│       ├── app.js               # 主组件（hash 路由 + 鉴权状态）
 │       ├── style.css
-│       └── components/          # 5 个 Alpine.js 组件
-└── 参赛材料/
-    ├── Demo脚本.md
-    ├── 录屏操作指引.md
-    ├── PPT大纲.md
-    ├── 详细材料草稿.md
-    └── demo-files/              # Demo 测试文件
+│       └── components/          # 9 个 Alpine.js 组件
+│       ├── auth.js              # 登录/注册/加入
+│       ├── project-list.js      # 项目列表
+│       ├── project-create.js    # 创建项目
+│       ├── task-board.js        # 任务看板
+│       ├── task-assign.js       # 分配/认领/提交/审阅
+│       ├── member-progress.js   # 成员进度+邀请码
+│       ├── upload-panel.js      # 里程碑上传
+│       ├── replan-modal.js      # 重规划弹窗
+│       └── notify-log.js        # 通知日志
+└── knowledge_base/              # 结构化知识库
 ```
 
 ## 创新点对比
