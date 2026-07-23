@@ -10,3 +10,11 @@ node_modules/
 .idea/
 *.log
 .trae/
+.superpowers/
+
+# 本地保留、不提交参赛/内部规划材料
+方向.txt
+参赛材料/
+参赛要求/
+docs/
+图标/
