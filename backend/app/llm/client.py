@@ -3,24 +3,30 @@ import re
 import time
 import logging
 from typing import Optional
-from volcenginesdkarkruntime import Ark
+from openai import OpenAI
 from json_repair import repair_json
 from app import config
 from app.llm.prompts import (INITIAL_PLAN_PROMPT, REPLAN_PROMPT, VALIDATE_FALLBACK_PROMPT,
                              FALLBACK_INITIAL_PLAN, FALLBACK_REPLAN_PROPOSAL)
 
 logger = logging.getLogger(__name__)
-_client: Optional[Ark] = None
+_client: Optional[OpenAI] = None
 
 
 class LLMUnavailableError(Exception):
     pass
 
 
-def get_client() -> Ark:
+def get_client() -> OpenAI:
+    """兼容 DeepSeek / 豆包 / 任何 OpenAI 协议模型"""
     global _client
     if _client is None:
-        _client = Ark(ak=config.VOLC_AK, sk=config.VOLC_SK)
+        if not config.DEEPSEEK_API_KEY:
+            raise LLMUnavailableError("未配置 DEEPSEEK_API_KEY")
+        _client = OpenAI(
+            api_key=config.DEEPSEEK_API_KEY,
+            base_url=config.DEEPSEEK_BASE_URL,
+        )
     return _client
 
 
@@ -47,7 +53,7 @@ def call_llm(prompt: str, max_retries: int = 1) -> dict:
     for attempt in range(max_retries + 1):
         try:
             resp = get_client().chat.completions.create(
-                model=config.VOLC_MODEL,
+                model=config.LLM_MODEL,
                 messages=[{"role": "user", "content": prompt}],
                 temperature=0.3)
             return parse_json_robust(resp.choices[0].message.content)
