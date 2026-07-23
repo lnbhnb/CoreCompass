@@ -67,3 +67,23 @@ def transition_project(current, event):
     if event not in allowed:
         raise InvalidTransition(f"项目 {current.value} 不允许事件 {event}")
     return allowed[event]
+
+
+class ReviewStatus(str, Enum):
+    PENDING = "pending_review"
+    APPROVED = "approved"
+    REJECTED = "rejected"
+
+
+def transition_review(current, event: str) -> ReviewStatus:
+    """任务审阅状态流转。event: submit | approve | reject | resubmit。"""
+    _REVIEW = {
+        None: {"submit": ReviewStatus.PENDING},
+        ReviewStatus.PENDING: {"approve": ReviewStatus.APPROVED, "reject": ReviewStatus.REJECTED, "resubmit": ReviewStatus.PENDING},
+        ReviewStatus.REJECTED: {"resubmit": ReviewStatus.PENDING},
+        ReviewStatus.APPROVED: {},
+    }
+    allowed = _REVIEW.get(current, {})
+    if event not in allowed:
+        raise InvalidTransition(f"审阅状态 {current} 不允许事件 {event}")
+    return allowed[event]

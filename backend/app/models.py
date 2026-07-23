@@ -239,3 +239,28 @@ def get_invite_by_code(code):
 def mark_invite_used(invite_id, user_id):
     with db.get_conn() as conn:
         conn.execute("UPDATE invite_codes SET used_by_user_id=? WHERE id=?", (user_id, invite_id))
+
+
+# ============ 任务审阅 ============
+def assign_task(task_id, assignee_id):
+    with db.get_conn() as conn:
+        conn.execute("UPDATE tasks SET assignee_id=? WHERE id=?", (assignee_id, task_id))
+
+
+def submit_task(task_id, submission_filename, submission_path):
+    with db.get_conn() as conn:
+        conn.execute(
+            """UPDATE tasks SET submission_filename=?, submission_path=?,
+               review_status='pending_review' WHERE id=?""",
+            (submission_filename, submission_path, task_id))
+
+
+def review_task(task_id, decision, reviewer_id, comment=None):
+    """decision: 'approved' | 'rejected'"""
+    from datetime import datetime
+    conn_status = "approved" if decision == "approved" else "rejected"
+    with db.get_conn() as conn:
+        conn.execute(
+            """UPDATE tasks SET review_status=?, reviewed_by=?, reviewed_at=?, review_comment=?
+               WHERE id=?""",
+            (conn_status, reviewer_id, datetime.now().isoformat(), comment, task_id))
