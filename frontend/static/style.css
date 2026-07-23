@@ -1,6 +1,125 @@
-* { box-sizing: border-box; }
-body { font-family: -apple-system, "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fa; color: #333; }
-header { background: #1a2b4a; color: white; padding: 16px 32px; }
-header h1 { margin: 0; }
-header p { margin: 4px 0 0; opacity: 0.7; }
-main { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: -apple-system, "Microsoft YaHei", sans-serif;
+  margin: 0;
+  background: #f5f7fa;
+  color: #333;
+}
+
+header {
+  background: #1a2b4a;
+  color: white;
+  padding: 16px 32px;
+}
+
+header h1 {
+  margin: 0;
+}
+
+header p {
+  margin: 4px 0 0;
+  opacity: 0.7;
+}
+
+main {
+  padding: 24px 32px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.panel {
+  background: white;
+  padding: 24px;
+  border-radius: 8px;
+  max-width: 600px;
+}
+
+.panel form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.panel label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 14px;
+}
+
+.project-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.badge {
+  background: #e8eef7;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 12px;
+}
+
+.board {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 16px;
+}
+
+.milestone-card {
+  background: white;
+  padding: 16px;
+  border-radius: 8px;
+  border-left: 4px solid #1a2b4a;
+}
+
+.milestone-card h3 {
+  margin: 0 0 8px;
+}
+
+.milestone-card ul {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0;
+}
+
+.milestone-card li {
+  padding: 4px 0;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.tag {
+  background: #f0f0f0;
+  padding: 1px 6px;
+  border-radius: 3px;
+  font-size: 11px;
+}
+
+.pass {
+  color: #16a34a;
+  margin-top: 8px;
+}
+
+.fail {
+  color: #dc2626;
+  margin-top: 8px;
+}
+
+button {
+  background: #1a2b4a;
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.5;
+}
