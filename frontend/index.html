@@ -147,6 +147,65 @@
         </section>
       </template>
 
+      <!-- 成员进度视图 -->
+      <template x-if="view === 'members'">
+        <section class="members-view" x-data="memberProgress($data)" x-init="init()">
+          <header class="board-header">
+            <div class="title-block">
+              <span class="eyebrow">CREW · PROGRESS</span>
+              <h1>成员进度</h1>
+            </div>
+            <button class="btn-ghost" @click="$root.navigate('/projects/' + $root.project.id)">← 回看板</button>
+          </header>
+
+          <!-- 待我审阅（仅队长） -->
+          <template x-if="$root.currentRole === 'leader' && data.pending_review.length">
+            <div class="review-queue">
+              <h2>待我审阅（<span x-text="data.pending_review.length"></span>）</h2>
+              <template x-for="t in data.pending_review" :key="t.id">
+                <div class="review-item">
+                  <div class="ri-head">
+                    <strong x-text="t.title"></strong>
+                    <span class="ri-time" x-text="'ID #' + t.id"></span>
+                  </div>
+                  <input class="ri-comment" x-model="reviewComment" placeholder="审阅意见（可选）">
+                  <div class="ri-actions">
+                    <a :href="downloadUrl(t.id)" target="_blank">查看产物</a>
+                    <button class="btn-approve" @click="review(t.id, 'approved')">通过</button>
+                    <button class="btn-reject" @click="review(t.id, 'rejected')">拒绝</button>
+                  </div>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- 成员列表 -->
+          <div class="member-grid">
+            <template x-for="m in data.members" :key="m.user.id">
+              <article class="member-card">
+                <div class="mc-head">
+                  <span class="mc-avatar" x-text="m.user.display_name.charAt(0)"></span>
+                  <div>
+                    <h3 x-text="m.user.display_name"></h3>
+                    <span class="mc-role" x-text="m.role === 'leader' ? '队长' : '队员'"></span>
+                  </div>
+                </div>
+                <div class="mc-stats">
+                  <span>负责 <strong x-text="m.total"></strong></span>
+                  <span>完成 <strong x-text="m.done"></strong></span>
+                  <span>审阅中 <strong x-text="m.pending_review"></strong></span>
+                  <span>待办 <strong x-text="m.todo"></strong></span>
+                </div>
+                <div class="mc-bar">
+                  <div class="mc-bar-fill" :style="`width: ${m.percent}%`"></div>
+                </div>
+                <span class="mc-pct" x-text="m.percent + '%'"></span>
+              </article>
+            </template>
+          </div>
+        </section>
+      </template>
+
       <!-- 创建项目视图 -->
       <template x-if="view === 'create'">
         <section class="create-view">
@@ -393,6 +452,7 @@
   <script src="/static/components/auth.js"></script>
   <script src="/static/components/project-list.js"></script>
   <script src="/static/components/task-assign.js"></script>
+  <script src="/static/components/member-progress.js"></script>
 </body>
 
 </html>
