@@ -1,28 +1,89 @@
 function app() {
   return {
-    view: 'create',
-    project: null, milestones: [], tasks: [], notifications: [], usedReferences: null,
+    view: 'login',
+    currentUser: null,
+    token: localStorage.getItem('cc_token') || null,
+    project: null, milestones: [], tasks: [], notifications: [],
+    usedReferences: null, currentRole: null,
+
+    init() {
+      if (this.token) {
+        this.fetchUser();
+      } else {
+        this.navigate('login');
+      }
+      window.addEventListener('hashchange', () => this.handleHash());
+      this.handleHash();
+    },
+
+    handleHash() {
+      const h = location.hash.slice(1);
+      if (!this.token) { this.view = 'login'; return; }
+      if (h.startsWith('/projects/new')) this.view = 'create';
+      else if (h.startsWith('/projects/') && h.endsWith('/members')) {
+        const pid = h.match(/\/projects\/(\d+)/)?.[1];
+        if (pid) { this.loadProject(pid); this.view = 'members'; }
+      } else if (h.startsWith('/projects/')) {
+        const pid = h.match(/\/projects\/(\d+)/)?.[1];
+        if (pid) this.loadProject(pid);
+      } else {
+        this.view = 'projects';
+      }
+    },
+
+    navigate(path) {
+      location.hash = path;
+      this.handleHash();
+    },
+
+    async fetchUser() {
+      try {
+        const r = await fetch('/api/auth/me', { headers: this.authHeaders() });
+        if (r.ok) {
+          this.currentUser = await r.json();
+        } else {
+          this.logout();
+        }
+      } catch { this.logout(); }
+    },
+
+    authHeaders() {
+      return this.token ? { 'Authorization': 'Bearer ' + this.token } : {};
+    },
+
+    setToken(token) {
+      this.token = token;
+      localStorage.setItem('cc_token', token);
+    },
+
+    logout() {
+      fetch('/api/auth/logout', { method: 'POST', headers: this.authHeaders() });
+      this.token = null;
+      this.currentUser = null;
+      localStorage.removeItem('cc_token');
+      this.navigate('login');
+    },
 
     async createProject(form) {
       const r = await fetch('/api/projects', {
-        method: 'POST', headers: { 'Content-Type': 'application/json' },
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
         body: JSON.stringify(form)
       });
+      if (!r.ok) throw new Error(await r.text());
       const data = await r.json();
-      this.project = data.detail.project;
-      this.milestones = data.detail.milestones;
-      this.tasks = data.detail.tasks;
-      this.usedReferences = data.detail.used_references || null;
-      this.view = 'board';
+      this.navigate('/projects/' + data.project_id);
     },
 
     async loadProject(pid) {
-      const r = await fetch(`/api/projects/${pid}`);
+      const r = await fetch(`/api/projects/${pid}`, { headers: this.authHeaders() });
+      if (!r.ok) { this.navigate('projects'); return; }
       const data = await r.json();
       this.project = data.project;
       this.milestones = data.milestones;
       this.tasks = data.tasks;
       this.usedReferences = data.used_references || null;
+      this.currentRole = data.current_role;
       this.view = 'board';
     },
 
@@ -37,7 +98,8 @@ function app() {
 
     async updateTaskStatus(taskId, event) {
       await fetch(`/api/tasks/${taskId}/status`, {
-        method: 'PATCH', headers: { 'Content-Type': 'application/json' },
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
         body: JSON.stringify({ event })
       });
       await this.loadProject(this.project.id);
@@ -45,7 +107,6 @@ function app() {
 
     // —— 罗盘仪表辅助方法 ——
     needleAngle() {
-      // 指针随当前里程碑进度旋转：M1→45°, M2→90°... 满额 360°
       if (!this.milestones.length) return 0;
       const done = this.milestones.filter(m => m.status === 'done').length;
       return Math.round((done / this.milestones.length) * 360);
