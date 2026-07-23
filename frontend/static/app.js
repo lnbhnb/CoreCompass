@@ -140,6 +140,51 @@ function app() {
       await this.loadProject(this.project.id);
     },
 
+    // —— 队长手动增删任务节点 ——
+    addTaskOpen: false,
+    addTaskMilestoneId: null,
+    addTaskTitle: '',
+    addTaskLoading: false,
+    deleteTaskTarget: null,
+    deleteTaskLoading: false,
+
+    openAddTask(milestoneId) {
+      this.addTaskMilestoneId = milestoneId;
+      this.addTaskTitle = '';
+      this.addTaskOpen = true;
+    },
+
+    async submitAddTask() {
+      if (!this.addTaskTitle.trim()) return;
+      this.addTaskLoading = true;
+      try {
+        await fetch(`/api/milestones/${this.addTaskMilestoneId}/tasks`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+          body: JSON.stringify({ title: this.addTaskTitle.trim() })
+        });
+        this.addTaskOpen = false;
+        await this.loadProject(this.project.id);
+      } finally { this.addTaskLoading = false; }
+    },
+
+    askDeleteTask(task) {
+      this.deleteTaskTarget = task;
+    },
+
+    async doDeleteTask() {
+      if (!this.deleteTaskTarget) return;
+      this.deleteTaskLoading = true;
+      try {
+        await fetch(`/api/tasks/${this.deleteTaskTarget.id}`, {
+          method: 'DELETE',
+          headers: this.authHeaders()
+        });
+        this.deleteTaskTarget = null;
+        await this.loadProject(this.project.id);
+      } finally { this.deleteTaskLoading = false; }
+    },
+
     // —— 罗盘仪表辅助方法 ——
     needleAngle() {
       if (!this.milestones.length) return 0;

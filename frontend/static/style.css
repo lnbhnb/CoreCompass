@@ -512,6 +512,55 @@ button:disabled {
   color: var(--compass);
 }
 
+.btn-mini.btn-danger {
+  color: #e57373;
+  border-color: rgba(229, 115, 115, 0.4);
+}
+
+.btn-mini.btn-danger:hover:not(:disabled) {
+  background: rgba(229, 115, 115, 0.15);
+  border-color: #e57373;
+  color: #ef5350;
+}
+
+.btn-accent.btn-danger {
+  background: #c62828;
+  border-color: #c62828;
+}
+
+.btn-accent.btn-danger:hover:not(:disabled) {
+  background: #b71c1c;
+  border-color: #b71c1c;
+}
+
+.btn-add-task {
+  width: 100%;
+  margin-top: 8px;
+  padding: 8px;
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+.btn-add-task:hover:not(:disabled) {
+  opacity: 1;
+}
+
+.modal-input {
+  width: 100%;
+  background: rgba(234, 224, 204, 0.06);
+  border: 1px solid var(--line-strong);
+  color: var(--parchment);
+  font-size: 14px;
+  padding: 10px 12px;
+  border-radius: 6px;
+  font-family: inherit;
+}
+
+.modal-input:focus {
+  outline: none;
+  border-color: var(--compass);
+}
+
 /* ============ 创建项目视图（双栏 · 填充右侧） ============ */
 .create-view {
   position: relative;

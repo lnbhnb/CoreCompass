@@ -380,9 +380,16 @@
                       <template x-if="t.status === 'doing'">
                         <button class="btn-mini" @click="updateStatus(t.id, 'complete')">完成</button>
                       </template>
+                      <template x-if="t.status === 'planned' && currentRole === 'leader'">
+                        <button class="btn-mini btn-danger" @click="askDeleteTask(t)">删除</button>
+                      </template>
                     </li>
                   </template>
                 </ul>
+
+                <template x-if="currentRole === 'leader'">
+                  <button class="btn-ghost btn-add-task" @click="openAddTask(g.milestone.id)">+ 新增任务</button>
+                </template>
 
                 <!-- 上传验收区 -->
                 <div class="upload-zone" x-data="uploadPanel($root)">
@@ -475,6 +482,45 @@
               </footer>
             </div>
           </template>
+        </div>
+      </div>
+
+      <!-- 新增任务弹窗 -->
+      <div x-show="addTaskOpen" class="modal-overlay" @click.self="addTaskOpen=false" x-cloak>
+        <div class="modal">
+          <header class="modal-head">
+            <span class="eyebrow">手动编排</span>
+            <h3>新增任务节点</h3>
+          </header>
+          <div class="modal-body">
+            <input type="text" class="modal-input" x-model="addTaskTitle" placeholder="输入任务标题"
+              @keydown.enter="submitAddTask()" :disabled="addTaskLoading">
+            <footer class="modal-actions">
+              <button class="btn-accent" @click="submitAddTask()" :disabled="addTaskLoading || !addTaskTitle.trim()">
+                <span x-text="addTaskLoading ? '添加中…' : '确认新增'"></span>
+              </button>
+              <button class="btn-ghost" @click="addTaskOpen=false" :disabled="addTaskLoading">取消</button>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+      <!-- 删除任务确认弹窗 -->
+      <div x-show="deleteTaskTarget" class="modal-overlay" @click.self="deleteTaskTarget=null" x-cloak>
+        <div class="modal">
+          <header class="modal-head">
+            <span class="eyebrow">二次确认</span>
+            <h3>删除任务节点</h3>
+          </header>
+          <div class="modal-body">
+            <p class="rationale">确定删除任务「<strong x-text="deleteTaskTarget?.title"></strong>」吗？此操作不可撤销。</p>
+            <footer class="modal-actions">
+              <button class="btn-accent btn-danger" @click="doDeleteTask()" :disabled="deleteTaskLoading">
+                <span x-text="deleteTaskLoading ? '删除中…' : '确认删除'"></span>
+              </button>
+              <button class="btn-ghost" @click="deleteTaskTarget=null" :disabled="deleteTaskLoading">取消</button>
+            </footer>
+          </div>
         </div>
       </div>
     </main>

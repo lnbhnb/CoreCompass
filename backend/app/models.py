@@ -72,6 +72,11 @@ def update_task_status(task_id, status, completed_at=None):
                      (status, completed_at, task_id))
 
 
+def delete_task(task_id):
+    with db.get_conn() as conn:
+        conn.execute("DELETE FROM tasks WHERE id=?", (task_id,))
+
+
 def update_task(task_id, **fields):
     allowed = {"priority", "difficulty", "est_effort_days", "status", "due_date", "start_date"}
     sets, vals = [], []
