@@ -2,6 +2,24 @@
   box-sizing: border-box;
 }
 
+.kb-refs {
+  background: #f0f7ff;
+  border-left: 4px solid #1a2b4a;
+  padding: 8px 16px;
+  margin-bottom: 16px;
+  font-size: 14px;
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.kb-refs span {
+  background: white;
+  padding: 2px 8px;
+  border-radius: 3px;
+}
+
 body {
   font-family: -apple-system, "Microsoft YaHei", sans-serif;
   margin: 0;

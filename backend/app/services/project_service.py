@@ -38,7 +38,11 @@ def create_project_with_plan(name, deadline, team_size, topic_desc):
 
 
 def get_project_detail(pid):
+    project = models.get_project(pid)
+    # 重新匹配素材（幂等，相同 topic 返回相同结果）
+    refs = knowledge_service.match_references(project["topic_desc"]) if project else None
     return {
-        "project": models.get_project(pid),
+        "project": project,
         "milestones": models.list_milestones(pid),
-        "tasks": models.list_tasks_by_project(pid)}
+        "tasks": models.list_tasks_by_project(pid),
+        "used_references": refs}

@@ -1,7 +1,7 @@
 function app() {
   return {
     view: 'create',
-    project: null, milestones: [], tasks: [], notifications: [],
+    project: null, milestones: [], tasks: [], notifications: [], usedReferences: null,
 
     async createProject(form) {
       const r = await fetch('/api/projects', {
@@ -12,6 +12,7 @@ function app() {
       this.project = data.detail.project;
       this.milestones = data.detail.milestones;
       this.tasks = data.detail.tasks;
+      this.usedReferences = data.detail.used_references || null;
       this.view = 'board';
     },
 
@@ -21,6 +22,7 @@ function app() {
       this.project = data.project;
       this.milestones = data.milestones;
       this.tasks = data.tasks;
+      this.usedReferences = data.used_references || null;
       this.view = 'board';
     },
 

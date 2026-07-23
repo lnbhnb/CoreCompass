@@ -38,6 +38,20 @@
           <button @click="$root._replan.propose()">触发重规划</button>
         </div>
 
+        <!-- 知识库参考素材标签 -->
+        <div x-show="usedReferences" class="kb-refs">
+          <strong>📚 本次拆解参考了：</strong>
+          <span x-show="usedReferences?.sdlc">
+            SDLC 模型：<span x-text="usedReferences?.sdlc"></span>
+          </span>
+          <template x-for="p in usedReferences?.projects || []" :key="p">
+            <span x-text="'相似项目：' + p"></span>
+          </template>
+          <template x-for="c in usedReferences?.contests || []" :key="c">
+            <span x-text="'比赛日程：' + c"></span>
+          </template>
+        </div>
+
         <div x-data="taskBoard($data)" class="board">
           <template x-for="g in groupByMilestone()" :key="g.milestone.id">
             <div class="milestone-card">
