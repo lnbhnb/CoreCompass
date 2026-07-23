@@ -1822,6 +1822,68 @@ textarea::placeholder {
   }
 }
 
+/* ============ 罗盘栏用户信息 ============ */
+.compass-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 11px;
+  margin-top: 8px;
+}
+
+.cu-name {
+  color: var(--parchment);
+}
+
+.cu-role {
+  color: var(--brass);
+  border: 1px solid var(--brass);
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-size: 10px;
+}
+
+.cu-logout {
+  background: none;
+  border: none;
+  color: var(--parchment-dim);
+  cursor: pointer;
+  font-size: 11px;
+  text-decoration: underline;
+}
+
+.cu-logout:hover {
+  color: var(--compass);
+}
+
+.compass-guest {
+  font-size: 11px;
+  color: var(--parchment-dim);
+  margin-top: 8px;
+  display: block;
+}
+
+/* ============ 通知类型标签 ============ */
+.nt-submit {
+  color: var(--compass);
+}
+
+.nt-review {
+  color: var(--brass);
+}
+
+.nt-overdue {
+  color: var(--fail);
+}
+
+.nt-replan {
+  color: var(--compass);
+}
+
+.nt-milestone {
+  color: var(--brass);
+}
+
 .modal-loading::before {
   content: '';
   width: 22px;

@@ -75,6 +75,17 @@
 
       <div class="rail-footer">
         <span class="footer-coord" x-text="coordsLabel()"></span>
+        <template x-if="currentUser">
+          <div class="compass-user">
+            <span class="cu-name" x-text="currentUser.display_name"></span>
+            <span class="cu-role"
+              x-text="currentRole === 'leader' ? '队长' : (currentRole === 'member' ? '队员' : '')"></span>
+            <button class="cu-logout" @click="logout()">登出</button>
+          </div>
+        </template>
+        <template x-if="!currentUser">
+          <span class="compass-guest">未登录</span>
+        </template>
       </div>
     </aside>
 
