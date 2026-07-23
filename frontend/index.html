@@ -3,138 +3,320 @@
 
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>CoreCompass · 校园项目粉碎机</title>
+  <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
+    rel="stylesheet">
   <link rel="stylesheet" href="/static/style.css">
   <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
 </head>
 
 <body>
-  <header>
-    <h1>CoreCompass</h1>
-    <p>校园项目"伪需求"粉碎机</p>
-  </header>
-  <main x-data="app()">
-    <!-- 创建项目 -->
-    <template x-if="view === 'create'">
-      <div x-data="projectCreate($data)" class="panel">
-        <h2>创建项目</h2>
-        <form @submit.prevent="submit()">
-          <label>项目名<input x-model="form.name" required></label>
-          <label>截止日期<input type="date" x-model="form.deadline" required></label>
-          <label>团队人数<input type="number" x-model.number="form.team_size" min="1" max="10"></label>
-          <label>课题描述<textarea x-model="form.topic_desc" rows="4" required></textarea></label>
-          <button :disabled="submitting">生成拆解计划</button>
-        </form>
+  <div class="app-shell" x-data="app()">
+    <!-- 左侧罗盘导航栏 -->
+    <aside class="compass-rail">
+      <div class="brand">
+        <svg class="brand-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+          <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1.5" opacity="0.4" />
+          <circle cx="32" cy="32" r="22" stroke="currentColor" stroke-width="1" opacity="0.25" />
+          <path d="M32 8 L36 32 L32 56 L28 32 Z" fill="var(--compass)" />
+          <path d="M8 32 L32 28 L56 32 L32 36 Z" fill="var(--brass)" opacity="0.7" />
+          <circle cx="32" cy="32" r="3" fill="var(--parchment)" />
+        </svg>
+        <div class="brand-text">
+          <strong>CORE<span>COMPASS</span></strong>
+          <em>校园项目粉碎机</em>
+        </div>
       </div>
-    </template>
 
-    <!-- 任务看板 + 上传区 -->
-    <template x-if="view === 'board'">
-      <div>
-        <div class="project-header">
-          <h2 x-text="project?.name"></h2>
-          <span class="badge" x-text="project?.status"></span>
-          <button @click="triggerOverdue()">模拟偏航（标记 doing 为逾期）</button>
-          <button @click="$root._replan.propose()">触发重规划</button>
+      <!-- 罗盘进度环（项目阶段指针） -->
+      <div class="compass-dial" x-show="project" x-cloak>
+        <svg viewBox="0 0 200 200" class="dial-svg">
+          <circle cx="100" cy="100" r="92" class="dial-ring" />
+          <circle cx="100" cy="100" r="78" class="dial-ring-inner" />
+          <!-- 方位刻度 -->
+          <g class="dial-ticks" stroke="currentColor">
+            <line x1="100" y1="14" x2="100" y2="24" />
+            <line x1="100" y1="176" x2="100" y2="186" />
+            <line x1="14" y1="100" x2="24" y2="100" />
+            <line x1="176" y1="100" x2="186" y2="100" />
+          </g>
+          <text x="100" y="12" text-anchor="middle" class="dial-cardinal">N</text>
+          <text x="100" y="196" text-anchor="middle" class="dial-cardinal">S</text>
+          <text x="8" y="105" text-anchor="middle" class="dial-cardinal">W</text>
+          <text x="192" y="105" text-anchor="middle" class="dial-cardinal">E</text>
+          <!-- 指针：外层 ambient 摆动，内层按里程碑进度旋转 -->
+          <g class="dial-needle-ambient">
+            <g class="dial-needle" :style="`transform: rotate(${needleAngle()}deg)`">
+              <path d="M100 28 L106 100 L100 108 L94 100 Z" class="needle-north" />
+              <path d="M100 172 L106 100 L100 92 L94 100 Z" class="needle-south" />
+              <circle cx="100" cy="100" r="5" class="needle-pivot" />
+              <circle cx="100" cy="100" r="9" class="needle-pivot-glow" />
+            </g>
+          </g>
+        </svg>
+        <div class="dial-readout">
+          <span class="readout-label">当前航向</span>
+          <strong class="readout-value" x-text="currentHeading()"></strong>
+          <span class="readout-progress" x-text="progressText()"></span>
         </div>
+      </div>
 
-        <!-- 知识库参考素材标签 -->
-        <div x-show="usedReferences" class="kb-refs">
-          <strong>📚 本次拆解参考了：</strong>
-          <span x-show="usedReferences?.sdlc">
-            SDLC 模型：<span x-text="usedReferences?.sdlc"></span>
-          </span>
-          <template x-for="p in usedReferences?.projects || []" :key="p">
-            <span x-text="'相似项目：' + p"></span>
-          </template>
-          <template x-for="c in usedReferences?.contests || []" :key="c">
-            <span x-text="'比赛日程：' + c"></span>
-          </template>
-        </div>
+      <!-- 导航项 -->
+      <nav class="rail-nav" x-show="project" x-cloak>
+        <button @click="scrollTo('board')">里程碑看板</button>
+        <button @click="scrollTo('notify')">通知日志</button>
+      </nav>
 
-        <div x-data="taskBoard($data)" class="board">
-          <template x-for="g in groupByMilestone()" :key="g.milestone.id">
-            <div class="milestone-card">
-              <h3 x-text="g.milestone.name"></h3>
-              <span class="badge" x-text="g.milestone.status"></span>
-              <ul>
-                <template x-for="t in g.tasks" :key="t.id">
-                  <li>
-                    <span x-text="t.title"></span>
-                    <span class="tag" x-text="statusLabel(t.status)"></span>
-                    <span class="tag" x-text="priorityLabel(t.priority)"></span>
-                    <template x-if="t.status === 'planned'">
-                      <button @click="$root.updateTaskStatus(t.id, 'start')">开始</button>
-                    </template>
-                    <template x-if="t.status === 'doing'">
-                      <button @click="$root.updateTaskStatus(t.id, 'complete')">完成</button>
-                    </template>
-                  </li>
-                </template>
-              </ul>
-              <!-- 上传区 -->
-              <div x-data="uploadPanel($root)">
-                <input type="file" :id="'file-'+g.milestone.id">
-                <button @click="upload(g.milestone.id, $el.previousElementSibling)" :disabled="uploading">上传验收</button>
-                <div x-show="lastResult" :class="lastResult?.pass ? 'pass' : 'fail'">
-                  <span x-text="lastResult?.pass ? '✓ 通过，解锁下一阶段' : '✗ 未通过'"></span>
-                  <ul x-show="lastResult?.reasons?.length">
-                    <template x-for="r in lastResult?.reasons || []">
-                      <li x-text="r"></li>
-                    </template>
-                  </ul>
+      <div class="rail-footer">
+        <span class="footer-coord" x-text="coordsLabel()"></span>
+      </div>
+    </aside>
+
+    <!-- 右侧主内容区 -->
+    <main class="canvas">
+      <!-- 创建项目视图 -->
+      <template x-if="view === 'create'">
+        <section class="create-view">
+          <span class="corner-mark tl">N · 00°00'</span>
+          <span class="corner-mark bl">SECTOR · A3</span>
+          <div class="create-hero">
+            <span class="eyebrow">AGENT · 项目拆解</span>
+            <h1>别让大课题<em>悄悄沉船。</em></h1>
+            <p>CoreCompass 是你的项目导航员。它用真实状态机强制验收产出、在偏航时主动重算路线、按计划定时催办——而不是只会附和的聊天框。</p>
+          </div>
+
+          <div class="create-form-panel" x-data="projectCreate($data)">
+            <h2>启动一次航行</h2>
+            <form @submit.prevent="submit()">
+              <label class="field">
+                <span>项目名</span>
+                <input x-model="form.name" required placeholder="校园二手交易平台">
+              </label>
+              <div class="field-row">
+                <label class="field">
+                  <span>截止日期</span>
+                  <input type="date" x-model="form.deadline" required>
+                </label>
+                <label class="field">
+                  <span>团队人数</span>
+                  <input type="number" x-model.number="form.team_size" min="1" max="10">
+                </label>
+              </div>
+              <label class="field">
+                <span>课题描述</span>
+                <textarea x-model="form.topic_desc" rows="4" required placeholder="描述你要做什么——关键词越多，知识库匹配越准"></textarea>
+              </label>
+              <button class="btn-primary" :disabled="submitting">
+                <span x-text="submitting ? '导航员正在拆解航线…' : '生成拆解计划'"></span>
+              </button>
+            </form>
+          </div>
+
+          <div class="create-trio">
+            <div class="trio-item">
+              <span class="trio-num">01</span>
+              <h3>硬验收</h3>
+              <p>上传空文件会被红色拒绝，里程碑锁定。</p>
+            </div>
+            <div class="trio-item">
+              <span class="trio-num">02</span>
+              <h3>动态重算</h3>
+              <p>偏航时算产能缺口，砍可选任务、保核心。</p>
+            </div>
+            <div class="trio-item">
+              <span class="trio-num">03</span>
+              <h3>主动打扰</h3>
+              <p>定时扫描逾期，飞书群收到 Agent 催办。</p>
+            </div>
+          </div>
+        </section>
+      </template>
+
+      <!-- 项目看板视图 -->
+      <template x-if="view === 'board'">
+        <section class="board-view">
+          <!-- 项目标题区 + 航向仪表条 -->
+          <header class="board-header" id="board">
+            <div class="title-block">
+              <span class="eyebrow" x-text="project?.status === 'crisis' ? '⚠ 航向偏移' : '航行中'"></span>
+              <h1 x-text="project?.name"></h1>
+              <div class="title-meta">
+                <span x-text="`截止 ${formatDate(project?.deadline)}`"></span>
+                <span x-text="`${project?.team_size} 人团队`"></span>
+                <span x-text="coordsLabel()"></span>
+              </div>
+            </div>
+            <div class="header-stats">
+              <div class="stat-cell">
+                <span class="stat-label">里程碑</span>
+                <strong class="stat-value" x-text="progressText()"></strong>
+                <div class="stat-bar">
+                  <div class="stat-bar-fill" :style="`width: ${milestonePct()}%`"></div>
+                </div>
+              </div>
+              <div class="stat-cell">
+                <span class="stat-label">任务进度</span>
+                <strong class="stat-value" x-text="taskProgressText()"></strong>
+                <div class="stat-bar">
+                  <div class="stat-bar-fill signal" :style="`width: ${taskPct()}%`"></div>
+                </div>
+              </div>
+              <div class="stat-cell">
+                <span class="stat-label">航向</span>
+                <strong class="stat-value compass" x-text="currentHeading()"></strong>
+                <div class="stat-bar">
+                  <div class="stat-bar-fill brass" :style="`width: ${needleAngle()/3.6}%`"></div>
                 </div>
               </div>
             </div>
+            <div class="header-actions">
+              <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
+              <button class="btn-accent" @click="$root._replan.propose()">触发重规划</button>
+            </div>
+          </header>
+
+          <!-- 知识库参考标签 -->
+          <div x-show="usedReferences" class="kb-refs" x-cloak>
+            <span class="kb-label">📚 本次拆解参考了</span>
+            <template x-if="usedReferences?.sdlc">
+              <span class="kb-tag">SDLC · <span x-text="usedReferences?.sdlc"></span></span>
+            </template>
+            <template x-for="p in usedReferences?.projects || []" :key="p">
+              <span class="kb-tag" x-text="'相似项目 · ' + p"></span>
+            </template>
+            <template x-for="c in usedReferences?.contests || []" :key="c">
+              <span class="kb-tag" x-text="'赛程 · ' + c"></span>
+            </template>
+          </div>
+
+          <!-- 里程碑卡片网格 -->
+          <div class="board-grid" x-data="taskBoard($data)">
+            <template x-for="g in groupByMilestone()" :key="g.milestone.id">
+              <article class="milestone-card" :class="milestoneClass(g.milestone)">
+                <header class="ms-head">
+                  <div class="ms-index" x-text="String(g.milestone.seq + 1).padStart(2, '0')"></div>
+                  <div class="ms-title">
+                    <h3 x-text="g.milestone.name"></h3>
+                    <span class="ms-type" x-text="artifactLabel(g.milestone.expected_artifact_type)"></span>
+                  </div>
+                  <span class="ms-status" x-text="milestoneStatusLabel(g.milestone.status)"></span>
+                </header>
+
+                <ul class="task-list">
+                  <template x-for="t in g.tasks" :key="t.id">
+                    <li class="task-item" :class="t.status">
+                      <span class="task-dot" :class="t.priority"></span>
+                      <div class="task-body">
+                        <span class="task-title" x-text="t.title"></span>
+                        <span class="task-tags">
+                          <em x-text="statusLabel(t.status)"></em>
+                          <em class="pri" x-text="priorityLabel(t.priority)"></em>
+                        </span>
+                      </div>
+                      <template x-if="t.status === 'planned'">
+                        <button class="btn-mini" @click="$root.updateTaskStatus(t.id, 'start')">开始</button>
+                      </template>
+                      <template x-if="t.status === 'doing'">
+                        <button class="btn-mini" @click="$root.updateTaskStatus(t.id, 'complete')">完成</button>
+                      </template>
+                    </li>
+                  </template>
+                </ul>
+
+                <!-- 上传验收区 -->
+                <div class="upload-zone" x-data="uploadPanel($root)">
+                  <div class="upload-row">
+                    <input type="file" :id="'file-'+g.milestone.id" class="upload-input">
+                    <label :for="'file-'+g.milestone.id" class="upload-label">选择产物文件</label>
+                    <button class="btn-mini"
+                      @click="upload(g.milestone.id, $el.previousElementSibling.previousElementSibling)"
+                      :disabled="uploading">
+                      <span x-text="uploading ? '校验中…' : '上传验收'"></span>
+                    </button>
+                  </div>
+                  <div x-show="lastResult" class="upload-result" :class="lastResult?.pass ? 'pass' : 'fail'" x-cloak>
+                    <span class="result-icon" x-text="lastResult?.pass ? '✓' : '✗'"></span>
+                    <span x-text="lastResult?.pass ? '通过，解锁下一阶段' : '未通过'"></span>
+                    <ul x-show="lastResult?.reasons?.length">
+                      <template x-for="r in lastResult?.reasons || []">
+                        <li x-text="r"></li>
+                      </template>
+                    </ul>
+                  </div>
+                </div>
+              </article>
+            </template>
+          </div>
+
+          <!-- 通知日志 -->
+          <section class="notify-panel" id="notify" x-data="notifyLog($data)" x-init="init()">
+            <header class="panel-head">
+              <h2>通知日志</h2>
+              <button class="btn-ghost" @click="testPush()">测试推送飞书</button>
+            </header>
+            <div class="notify-list" x-show="logs.length">
+              <template x-for="log in logs" :key="log.id">
+                <article class="notify-item" :class="log.status">
+                  <span class="notify-time" x-text="formatTime(log.created_at)"></span>
+                  <span class="notify-type" x-text="log.type"></span>
+                  <span class="notify-status" x-text="log.status"></span>
+                  <p x-text="log.content"></p>
+                </article>
+              </template>
+            </div>
+            <p class="empty-state" x-show="!logs.length">暂无通知。点击"测试推送飞书"看 Agent 主动打扰。</p>
+          </section>
+        </section>
+      </template>
+
+      <!-- 重规划模态 -->
+      <div x-data="replanModal($data)" x-init="_replan = $data._replan = this" x-show="open" class="modal-overlay"
+        @click.self="open=false" x-cloak>
+        <div class="modal">
+          <header class="modal-head">
+            <span class="eyebrow">动态重算</span>
+            <h3>砍需求提案</h3>
+          </header>
+          <template x-if="loading">
+            <p class="modal-loading">导航员正在计算偏航缺口…</p>
+          </template>
+          <template x-if="!loading && proposal">
+            <div class="modal-body">
+              <div class="gap-stat">
+                <span class="gap-label">产能缺口</span>
+                <strong class="gap-value" x-text="`${gapDays} 人天`"></strong>
+              </div>
+              <p class="rationale" x-text="proposal.rationale"></p>
+              <div class="proposal-block" x-show="proposal.cut_tasks?.length">
+                <span class="block-label">建议砍掉</span>
+                <span class="block-value" x-text="proposal.cut_tasks?.join(', ')"></span>
+              </div>
+              <div class="proposal-block" x-show="proposal.downgrade_tasks?.length">
+                <span class="block-label">建议降级</span>
+                <div class="downgrade-list">
+                  <template x-for="d in proposal.downgrade_tasks" :key="d.id">
+                    <span class="downgrade-chip" x-text="`#${d.id} ${d.from}→${d.to}`"></span>
+                  </template>
+                </div>
+              </div>
+              <footer class="modal-actions">
+                <button class="btn-accent" @click="apply()" :disabled="applying">
+                  <span x-text="applying ? '应用中…' : '确认应用'"></span>
+                </button>
+                <button class="btn-ghost" @click="open=false">取消</button>
+              </footer>
+            </div>
           </template>
         </div>
-
-        <!-- 通知日志 -->
-        <div x-data="notifyLog($data)" x-init="init()" class="panel notify-log" style="margin-top:24px">
-          <h3>通知日志 <button @click="testPush()">测试推送飞书</button></h3>
-          <ul>
-            <template x-for="log in logs" :key="log.id">
-              <li :class="log.status">
-                <span x-text="log.created_at"></span>
-                <span x-text="log.type"></span>
-                <span x-text="log.status"></span>
-                <p x-text="log.content"></p>
-              </li>
-            </template>
-          </ul>
-        </div>
       </div>
-    </template>
-
-    <!-- 重规划模态 -->
-    <div x-data="replanModal($data)" x-init="_replan = $data._replan = this" x-show="open" class="modal-overlay"
-      @click.self="open=false" style="display:none">
-      <div class="modal">
-        <h3>动态重算 · 砍需求提案</h3>
-        <template x-if="loading">
-          <p>AI 分析中...</p>
-        </template>
-        <template x-if="!loading && proposal">
-          <div>
-            <p>缺口：<strong x-text="gapDays"></strong> 人天</p>
-            <p x-text="proposal.rationale"></p>
-            <div x-show="proposal.cut_tasks?.length">
-              <p>建议砍掉的任务 ID：<span x-text="proposal.cut_tasks?.join(', ')"></span></p>
-            </div>
-            <div x-show="proposal.downgrade_tasks?.length">
-              <p>建议降级的任务：
-                <template x-for="d in proposal.downgrade_tasks" :key="d.id">
-                  <span x-text="`#${d.id} ${d.from}→${d.to}`"></span>
-                </template>
-              </p>
-            </div>
-            <button @click="apply()" :disabled="applying">确认应用</button>
-            <button @click="open=false">取消</button>
-          </div>
-        </template>
-      </div>
-    </div>
-  </main>
+    </main>
+  </div>
   <script src="/static/app.js"></script>
   <script src="/static/components/project-create.js"></script>
   <script src="/static/components/task-board.js"></script>

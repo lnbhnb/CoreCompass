@@ -41,6 +41,65 @@ function app() {
         body: JSON.stringify({ event })
       });
       await this.loadProject(this.project.id);
+    },
+
+    // —— 罗盘仪表辅助方法 ——
+    needleAngle() {
+      // 指针随当前里程碑进度旋转：M1→45°, M2→90°... 满额 360°
+      if (!this.milestones.length) return 0;
+      const done = this.milestones.filter(m => m.status === 'done').length;
+      return Math.round((done / this.milestones.length) * 360);
+    },
+
+    currentHeading() {
+      if (!this.milestones.length) return '待启航';
+      const current = this.milestones.find(m => m.status !== 'done') || this.milestones[0];
+      const idx = this.milestones.indexOf(current) + 1;
+      return `M${String(idx).padStart(2, '0')} · ${current.name}`;
+    },
+
+    progressText() {
+      if (!this.milestones.length) return '';
+      const done = this.milestones.filter(m => m.status === 'done').length;
+      return `${done} / ${this.milestones.length} 里程碑`;
+    },
+
+    milestonePct() {
+      if (!this.milestones.length) return 0;
+      const done = this.milestones.filter(m => m.status === 'done').length;
+      return Math.round((done / this.milestones.length) * 100);
+    },
+
+    taskProgressText() {
+      if (!this.tasks.length) return '0 / 0 任务';
+      const done = this.tasks.filter(t => t.status === 'done').length;
+      return `${done} / ${this.tasks.length} 任务`;
+    },
+
+    taskPct() {
+      if (!this.tasks.length) return 0;
+      const done = this.tasks.filter(t => t.status === 'done').length;
+      return Math.round((done / this.tasks.length) * 100);
+    },
+
+    coordsLabel() {
+      if (!this.project) return '— · —';
+      const days = Math.max(0, Math.ceil((new Date(this.project.deadline) - new Date()) / 86400000));
+      return `${days}d 到岸 · ${this.project.team_size}p`;
+    },
+
+    scrollTo(id) {
+      document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    },
+
+    formatDate(s) {
+      if (!s) return '';
+      return s.slice(0, 10);
+    },
+
+    formatTime(s) {
+      if (!s) return '';
+      return s.replace('T', ' ').slice(0, 16);
     }
   }
 }
