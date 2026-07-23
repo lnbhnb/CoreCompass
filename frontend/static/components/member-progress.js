@@ -6,6 +6,9 @@ function memberProgress(parent) {
     invite: null,
     inviteCopied: false,
 
+    get currentRole() { return parent.currentRole; },
+    get projectId() { return parent.project ? parent.project.id : null; },
+
     async init() {
       await this.load();
     },

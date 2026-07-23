@@ -167,15 +167,15 @@
               <h1>成员进度</h1>
             </div>
             <div class="header-actions">
-              <template x-if="$root.currentRole === 'leader'">
+              <template x-if="currentRole === 'leader'">
                 <button class="btn-accent" @click="generateInvite()">+ 生成邀请码</button>
               </template>
-              <button class="btn-ghost" @click="go('/projects/' + $root.project.id)">← 回看板</button>
+              <button class="btn-ghost" @click="go('/projects/' + projectId)">← 回看板</button>
             </div>
           </header>
 
           <!-- 邀请码展示（仅队长，生成后显示） -->
-          <template x-if="$root.currentRole === 'leader' && invite">
+          <template x-if="currentRole === 'leader' && invite">
             <div class="invite-card">
               <span class="iv-label">邀请码（7 天有效，队员注册后输入即可加入）</span>
               <div class="iv-row">
@@ -187,7 +187,7 @@
           </template>
 
           <!-- 待我审阅（仅队长） -->
-          <template x-if="$root.currentRole === 'leader' && data.pending_review.length">
+          <template x-if="currentRole === 'leader' && data.pending_review.length">
             <div class="review-queue">
               <h2>待我审阅（<span x-text="data.pending_review.length"></span>）</h2>
               <template x-for="t in data.pending_review" :key="t.id">
