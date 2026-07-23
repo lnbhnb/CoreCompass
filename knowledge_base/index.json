@@ -1,0 +1,18 @@
+{
+  "sdlc": {
+    "hybrid": {"file": "sdlc/hybrid.md", "keywords": ["混合", "hybrid", "校园", "课程设计", "毕设", "竞赛", "推荐"]},
+    "agile": {"file": "sdlc/agile.md", "keywords": ["敏捷", "agile", "scrum", "迭代", "sprint"]},
+    "waterfall": {"file": "sdlc/waterfall.md", "keywords": ["瀑布", "waterfall", "大型项目"]}
+  },
+  "projects": {
+    "flask": {"file": "projects/flask.md", "keywords": ["web", "api", "后端", "flask", "python", "http", "路由"]},
+    "fastapi": {"file": "projects/fastapi.md", "keywords": ["api", "异步", "fastapi", "后端", "接口", "restful", "openapi"]},
+    "django": {"file": "projects/django.md", "keywords": ["web", "全栈", "django", "cms", "内容管理", "admin"]},
+    "taro": {"file": "projects/taro.md", "keywords": ["小程序", "跨端", "taro", "react", "多端", "微信", "支付宝"]}
+  },
+  "contests": {
+    "challenge-cup": {"file": "contests/challenge-cup.md", "keywords": ["挑战杯", "创业计划", "课外学术"]},
+    "internet-plus": {"file": "contests/internet-plus.md", "keywords": ["互联网+", "互联网", "创新创业", "大创"]},
+    "computer-design": {"file": "contests/computer-design.md", "keywords": ["计算机设计", "计设", "软件应用"]}
+  }
+}
