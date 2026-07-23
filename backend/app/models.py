@@ -178,3 +178,44 @@ def get_user(uid):
 def clear_user_token(uid):
     with db.get_conn() as conn:
         conn.execute("UPDATE users SET token=NULL WHERE id=?", (uid,))
+
+
+# ============ 项目成员 ============
+def add_project_member(project_id, user_id, role):
+    with db.get_conn() as conn:
+        conn.execute(
+            "INSERT INTO project_members(project_id, user_id, role) VALUES(?,?,?)",
+            (project_id, user_id, role))
+
+
+def get_project_member(project_id, user_id):
+    with db.get_conn() as conn:
+        row = conn.execute(
+            "SELECT * FROM project_members WHERE project_id=? AND user_id=?",
+            (project_id, user_id)).fetchone()
+        return dict(row) if row else None
+
+
+def list_project_members(project_id):
+    with db.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT pm.role, pm.joined_at, u.id, u.username, u.display_name
+               FROM project_members pm JOIN users u ON pm.user_id=u.id
+               WHERE pm.project_id=? ORDER BY pm.joined_at""",
+            (project_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+
+def list_projects_for_user(user_id):
+    with db.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT p.* FROM projects p
+               JOIN project_members pm ON pm.project_id=p.id
+               WHERE pm.user_id=? ORDER BY p.id DESC""",
+            (user_id,)).fetchall()
+        return [dict(r) for r in rows]
+
+
+def set_project_creator(project_id, user_id):
+    with db.get_conn() as conn:
+        conn.execute("UPDATE projects SET creator_id=? WHERE id=?", (user_id, project_id))
