@@ -166,8 +166,25 @@
               <span class="eyebrow">CREW · PROGRESS</span>
               <h1>成员进度</h1>
             </div>
-            <button class="btn-ghost" @click="$root.navigate('/projects/' + $root.project.id)">← 回看板</button>
+            <div class="header-actions">
+              <template x-if="$root.currentRole === 'leader'">
+                <button class="btn-accent" @click="generateInvite()">+ 生成邀请码</button>
+              </template>
+              <button class="btn-ghost" @click="$root.navigate('/projects/' + $root.project.id)">← 回看板</button>
+            </div>
           </header>
+
+          <!-- 邀请码展示（仅队长，生成后显示） -->
+          <template x-if="$root.currentRole === 'leader' && invite">
+            <div class="invite-card">
+              <span class="iv-label">邀请码（7 天有效，队员注册后输入即可加入）</span>
+              <div class="iv-row">
+                <code class="iv-code" x-text="invite.code"></code>
+                <button class="btn-ghost" @click="copyInviteCode()" x-text="inviteCopied ? '已复制' : '复制'"></button>
+              </div>
+              <span class="iv-expire" x-text="'过期：' + invite.expires_at.slice(0, 10)"></span>
+            </div>
+          </template>
 
           <!-- 待我审阅（仅队长） -->
           <template x-if="$root.currentRole === 'leader' && data.pending_review.length">

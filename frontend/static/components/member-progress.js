@@ -3,6 +3,8 @@ function memberProgress(parent) {
     data: { members: [], pending_review: [] },
     loading: true,
     reviewComment: '',
+    invite: null,
+    inviteCopied: false,
 
     async init() {
       await this.load();
@@ -20,6 +22,22 @@ function memberProgress(parent) {
       } finally {
         this.loading = false;
       }
+    },
+
+    async generateInvite() {
+      const r = await fetch(`/api/projects/${parent.project.id}/invites`, {
+        method: 'POST',
+        headers: parent.authHeaders()
+      });
+      if (!r.ok) { alert('生成失败'); return; }
+      this.invite = await r.json();
+      this.inviteCopied = false;
+    },
+
+    copyInviteCode() {
+      if (!this.invite) return;
+      navigator.clipboard.writeText(this.invite.code);
+      this.inviteCopied = true;
     },
 
     async review(taskId, decision) {
