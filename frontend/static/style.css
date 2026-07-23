@@ -1,0 +1,6 @@
+* { box-sizing: border-box; }
+body { font-family: -apple-system, "Microsoft YaHei", sans-serif; margin: 0; background: #f5f7fa; color: #333; }
+header { background: #1a2b4a; color: white; padding: 16px 32px; }
+header h1 { margin: 0; }
+header p { margin: 4px 0 0; opacity: 0.7; }
+main { padding: 24px 32px; max-width: 1200px; margin: 0 auto; }
