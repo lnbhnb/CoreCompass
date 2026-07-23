@@ -18,10 +18,11 @@ CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, FOREIGN KEY (user_
 EMPTY_SQL = "-- nothing"
 
 
-@patch("app.services.project_service.client.generate_initial_plan", return_value=FALLBACK_PLAN)
+@patch("app.services.project_service.client.generate_initial_plan_with_kb", return_value=FALLBACK_PLAN)
 @pytest.mark.asyncio
 async def test_lock_then_unlock(mock_llm):
-    pid = project_service.create_project_with_plan("p", "2026-08-20", 3, "topic")
+    result = project_service.create_project_with_plan("p", "2026-08-20", 3, "topic")
+    pid = result["project_id"]
     ms_id = models.list_milestones(pid)[0]["id"]
     r = await validate_service.validate_milestone_artifact(ms_id, "empty.sql", EMPTY_SQL.encode())
     assert r["pass"] is False

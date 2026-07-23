@@ -12,27 +12,30 @@ FALLBACK_PLAN = {
             {"title": "opt task B", "priority": "optional", "est_effort_days": 1.0, "week": 1}]}]}
 
 
-@patch("app.services.project_service.client.generate_initial_plan", return_value=FALLBACK_PLAN)
+@patch("app.services.project_service.client.generate_initial_plan_with_kb", return_value=FALLBACK_PLAN)
 def test_capacity_calc_no_gap(mock_llm):
-    pid = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    result = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    pid = result["project_id"]
     tasks = models.list_tasks_by_project(pid)
     gap = replan_service.calculate_gap(tasks, remaining_days=60, team_size=3)
     assert gap <= 0
 
 
-@patch("app.services.project_service.client.generate_initial_plan", return_value=FALLBACK_PLAN)
+@patch("app.services.project_service.client.generate_initial_plan_with_kb", return_value=FALLBACK_PLAN)
 def test_capacity_calc_with_gap(mock_llm):
-    pid = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    result = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    pid = result["project_id"]
     tasks = models.list_tasks_by_project(pid)
     gap = replan_service.calculate_gap(tasks, remaining_days=1, team_size=1)
     assert gap > 0
 
 
-@patch("app.services.project_service.client.generate_initial_plan", return_value=FALLBACK_PLAN)
+@patch("app.services.project_service.client.generate_initial_plan_with_kb", return_value=FALLBACK_PLAN)
 @patch("app.services.replan_service.client.generate_replan_proposal")
 def test_replan_cannot_cut_core(mock_proposal, mock_init):
     """铁律：即使 LLM 试图砍 core，系统也不允许"""
-    pid = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    result = project_service.create_project_with_plan("p", "2026-12-31", 3, "t")
+    pid = result["project_id"]
     tasks = models.list_tasks_by_project(pid)
     core_id = [t for t in tasks if t["priority"] == "core"][0]["id"]
     mock_proposal.return_value = {

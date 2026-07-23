@@ -1,3 +1,26 @@
+INITIAL_PLAN_PROMPT_WITH_KB = """你是项目拆解专家。根据课题生成里程碑和周任务。
+
+【课题】{topic}
+【团队人数】{team_size}
+【截止日期】{deadline}
+
+【参考素材】
+{kb_context}
+
+请参考上述素材的里程碑划分思路，但不要照搬。根据课题特点灵活调整。
+
+输出严格 JSON（不要 markdown 代码块）：
+{{
+  "milestones": [
+    {{"name": "...", "expected_artifact_type": "sql|md|code|json|other", "tasks": [
+      {{"title": "...", "description": "...", "priority": "core|optional",
+        "difficulty": "high|mid|low", "est_effort_days": 1.5, "week": 1}}
+    ]}}
+  ]
+}}
+要求：4-6 个里程碑，按 SDLC 顺序；每里程碑 2-4 任务；core/optional 比例约 6:4。
+"""
+
 INITIAL_PLAN_PROMPT = """你是项目拆解专家。根据课题生成里程碑和周任务。
 课题：{topic}
 团队人数：{team_size}

@@ -16,9 +16,12 @@ class ProjectCreate(BaseModel):
 @router.post("/api/projects")
 def create_project(req: ProjectCreate):
     try:
-        pid = project_service.create_project_with_plan(
+        result = project_service.create_project_with_plan(
             req.name, req.deadline, req.team_size, req.topic_desc)
-        return {"project_id": pid, "detail": project_service.get_project_detail(pid)}
+        pid = result["project_id"]
+        detail = project_service.get_project_detail(pid)
+        detail["used_references"] = result["used_references"]
+        return {"project_id": pid, "detail": detail}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 

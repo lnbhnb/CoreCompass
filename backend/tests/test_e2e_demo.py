@@ -18,7 +18,7 @@ CREATE TABLE orders (id INTEGER PRIMARY KEY, user_id INTEGER, FOREIGN KEY (user_
 """
 
 
-@patch("app.services.project_service.client.generate_initial_plan", return_value=FALLBACK_PLAN)
+@patch("app.services.project_service.client.generate_initial_plan_with_kb", return_value=FALLBACK_PLAN)
 @patch("app.services.notify_service.httpx.post")
 @pytest.mark.asyncio
 async def test_e2e_three_highlights(mock_post, mock_plan):
@@ -29,7 +29,8 @@ async def test_e2e_three_highlights(mock_post, mock_plan):
     monkeypatch_target.FEISHU_SECRET = ""
 
     # 段1：创建项目
-    pid = project_service.create_project_with_plan("Demo", "2026-08-20", 3, "校园二手交易平台")
+    result = project_service.create_project_with_plan("Demo", "2026-08-20", 3, "校园二手交易平台")
+    pid = result["project_id"]
     assert len(models.list_tasks_by_project(pid)) == 3
 
     # 段2：突出点① 实体验证（先失败后通过）

@@ -6,7 +6,8 @@ from typing import Optional
 from openai import OpenAI
 from json_repair import repair_json
 from app import config
-from app.llm.prompts import (INITIAL_PLAN_PROMPT, REPLAN_PROMPT, VALIDATE_FALLBACK_PROMPT,
+from app.llm.prompts import (INITIAL_PLAN_PROMPT, INITIAL_PLAN_PROMPT_WITH_KB,
+                             REPLAN_PROMPT, VALIDATE_FALLBACK_PROMPT,
                              FALLBACK_INITIAL_PLAN, FALLBACK_REPLAN_PROPOSAL)
 
 logger = logging.getLogger(__name__)
@@ -71,6 +72,17 @@ def generate_initial_plan(topic, team_size, deadline):
             topic=topic, team_size=team_size, deadline=deadline))
     except LLMUnavailableError:
         logger.error("初始计划 LLM 失败，用 fallback 模板")
+        return FALLBACK_INITIAL_PLAN
+
+
+def generate_initial_plan_with_kb(topic, team_size, deadline, kb_context):
+    """带知识库素材的初始计划生成"""
+    try:
+        return call_llm(INITIAL_PLAN_PROMPT_WITH_KB.format(
+            topic=topic, team_size=team_size,
+            deadline=deadline, kb_context=kb_context))
+    except LLMUnavailableError:
+        logger.error("带知识库的初始计划 LLM 失败，用 fallback")
         return FALLBACK_INITIAL_PLAN
 
 
