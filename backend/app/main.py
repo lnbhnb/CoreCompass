@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.db import init_db
-from app.routes import projects
+from app.routes import projects, validate
 
 app = FastAPI(title="CoreCompass")
 app.add_middleware(
