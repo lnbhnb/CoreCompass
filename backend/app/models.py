@@ -146,3 +146,35 @@ def list_overdue_tasks(pid=None):
         params = (pid,)
     with db.get_conn() as conn:
         return [dict(r) for r in conn.execute(sql, params).fetchall()]
+
+
+# ============ 用户与认证 ============
+def create_user(username, password_hash, display_name, token):
+    with db.get_conn() as conn:
+        cur = conn.execute(
+            "INSERT INTO users(username, password_hash, display_name, token) VALUES(?,?,?,?)",
+            (username, password_hash, display_name, token))
+        return cur.lastrowid
+
+
+def get_user_by_username(username):
+    with db.get_conn() as conn:
+        row = conn.execute("SELECT * FROM users WHERE username=?", (username,)).fetchone()
+        return dict(row) if row else None
+
+
+def get_user_by_token(token):
+    with db.get_conn() as conn:
+        row = conn.execute("SELECT * FROM users WHERE token=?", (token,)).fetchone()
+        return dict(row) if row else None
+
+
+def get_user(uid):
+    with db.get_conn() as conn:
+        row = conn.execute("SELECT * FROM users WHERE id=?", (uid,)).fetchone()
+        return dict(row) if row else None
+
+
+def clear_user_token(uid):
+    with db.get_conn() as conn:
+        conn.execute("UPDATE users SET token=NULL WHERE id=?", (uid,))
