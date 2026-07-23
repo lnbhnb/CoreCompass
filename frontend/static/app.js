@@ -93,6 +93,40 @@ function app() {
       await this.loadProject(this.project.id);
     },
 
+    // —— 重规划（直接放在 app 根，避免组件挂载时序问题）——
+    replanOpen: false,
+    replanLoading: false,
+    replanProposal: null,
+    replanGapDays: null,
+    replanApplying: false,
+    replanResult: null,
+
+    async proposeReplan() {
+      this.replanOpen = true;
+      this.replanLoading = true;
+      this.replanProposal = null;
+      try {
+        const r = await fetch(`/api/replan/${this.project.id}/propose`, { method: 'POST' });
+        const data = await r.json();
+        this.replanGapDays = data.gap_days;
+        this.replanProposal = data.proposal;
+      } finally { this.replanLoading = false; }
+    },
+
+    async applyReplan() {
+      if (!this.replanProposal) return;
+      this.replanApplying = true;
+      try {
+        const r = await fetch(`/api/replan/${this.project.id}/apply`, {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ proposal: this.replanProposal })
+        });
+        this.replanResult = await r.json();
+        await this.refresh();
+        this.replanOpen = false;
+      } finally { this.replanApplying = false; }
+    },
+
     async refresh() {
       if (this.project) await this.loadProject(this.project.id);
     },

@@ -332,7 +332,7 @@
             <div class="header-actions">
               <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
               <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
-              <button class="btn-accent" @click="$root._replan.propose()">触发重规划</button>
+              <button class="btn-accent" @click="proposeReplan()">触发重规划</button>
             </div>
           </header>
 
@@ -431,40 +431,47 @@
       </template>
 
       <!-- 重规划模态 -->
-      <div x-data="replanModal($data)" x-init="_replan = $data._replan = this" x-show="open" class="modal-overlay"
-        @click.self="open=false" x-cloak>
+      <div x-show="replanOpen" class="modal-overlay" @click.self="replanOpen=false" x-cloak>
         <div class="modal">
           <header class="modal-head">
             <span class="eyebrow">动态重算</span>
             <h3>砍需求提案</h3>
           </header>
-          <template x-if="loading">
+          <template x-if="replanLoading">
             <p class="modal-loading">导航员正在计算偏航缺口…</p>
           </template>
-          <template x-if="!loading && proposal">
+          <template x-if="!replanLoading && !replanProposal">
+            <div class="modal-body">
+              <p class="rationale">产能充足，无需砍需求。如需测试重规划，请先缩短截止日期或增加任务量制造产能缺口。</p>
+              <footer class="modal-actions">
+                <button class="btn-ghost" @click="replanOpen=false">关闭</button>
+              </footer>
+            </div>
+          </template>
+          <template x-if="!replanLoading && replanProposal">
             <div class="modal-body">
               <div class="gap-stat">
                 <span class="gap-label">产能缺口</span>
-                <strong class="gap-value" x-text="`${gapDays} 人天`"></strong>
+                <strong class="gap-value" x-text="`${replanGapDays} 人天`"></strong>
               </div>
-              <p class="rationale" x-text="proposal.rationale"></p>
-              <div class="proposal-block" x-show="proposal.cut_tasks?.length">
+              <p class="rationale" x-text="replanProposal.rationale"></p>
+              <div class="proposal-block" x-show="replanProposal.cut_tasks?.length">
                 <span class="block-label">建议砍掉</span>
-                <span class="block-value" x-text="proposal.cut_tasks?.join(', ')"></span>
+                <span class="block-value" x-text="replanProposal.cut_tasks?.join(', ')"></span>
               </div>
-              <div class="proposal-block" x-show="proposal.downgrade_tasks?.length">
+              <div class="proposal-block" x-show="replanProposal.downgrade_tasks?.length">
                 <span class="block-label">建议降级</span>
                 <div class="downgrade-list">
-                  <template x-for="d in proposal.downgrade_tasks" :key="d.id">
+                  <template x-for="d in replanProposal.downgrade_tasks" :key="d.id">
                     <span class="downgrade-chip" x-text="`#${d.id} ${d.from}→${d.to}`"></span>
                   </template>
                 </div>
               </div>
               <footer class="modal-actions">
-                <button class="btn-accent" @click="apply()" :disabled="applying">
-                  <span x-text="applying ? '应用中…' : '确认应用'"></span>
+                <button class="btn-accent" @click="applyReplan()" :disabled="replanApplying">
+                  <span x-text="replanApplying ? '应用中…' : '确认应用'"></span>
                 </button>
-                <button class="btn-ghost" @click="open=false">取消</button>
+                <button class="btn-ghost" @click="replanOpen=false">取消</button>
               </footer>
             </div>
           </template>
@@ -476,7 +483,6 @@
   <script src="/static/components/project-create.js"></script>
   <script src="/static/components/task-board.js"></script>
   <script src="/static/components/upload-panel.js"></script>
-  <script src="/static/components/replan-modal.js"></script>
   <script src="/static/components/notify-log.js"></script>
   <script src="/static/components/auth.js"></script>
   <script src="/static/components/project-list.js"></script>
