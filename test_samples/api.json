@@ -1,0 +1,12 @@
+{
+  "name": "校园二手交易平台 API",
+  "version": "1.0.0",
+  "endpoints": [
+    {"method": "POST", "path": "/api/auth/register", "desc": "用户注册"},
+    {"method": "POST", "path": "/api/auth/login", "desc": "用户登录"},
+    {"method": "GET", "path": "/api/products", "desc": "商品列表"},
+    {"method": "POST", "path": "/api/products", "desc": "发布商品"},
+    {"method": "POST", "path": "/api/orders", "desc": "创建订单"},
+    {"method": "GET", "path": "/api/orders/{id}", "desc": "订单详情"}
+  ]
+}

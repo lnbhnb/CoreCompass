@@ -2,6 +2,10 @@ function projectList(parent) {
   return {
     projects: [],
     loading: true,
+    joinOpen: false,
+    joinCode: '',
+    joinLoading: false,
+    joinError: null,
 
     async init() {
       await this.load();
@@ -15,6 +19,37 @@ function projectList(parent) {
         this.projects = await r.json();
       } finally {
         this.loading = false;
+      }
+    },
+
+    openJoin() {
+      this.joinCode = '';
+      this.joinError = null;
+      this.joinOpen = true;
+    },
+
+    async submitJoin() {
+      if (!this.joinCode.trim()) return;
+      this.joinLoading = true;
+      this.joinError = null;
+      try {
+        const r = await fetch('/api/auth/join', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...parent.authHeaders() },
+          body: JSON.stringify({ invite_code: this.joinCode.trim() })
+        });
+        if (!r.ok) {
+          const e = await r.json();
+          throw new Error(e.detail || '加入失败');
+        }
+        const data = await r.json();
+        this.joinOpen = false;
+        await this.load();
+        parent.navigate('/projects/' + data.project_id);
+      } catch (e) {
+        this.joinError = e.message;
+      } finally {
+        this.joinLoading = false;
       }
     },
 

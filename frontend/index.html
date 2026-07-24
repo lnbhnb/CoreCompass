@@ -119,13 +119,6 @@
                 <span x-text="loading ? '处理中…' : (mode==='login' ? '登录' : '注册')"></span>
               </button>
             </form>
-            <div class="auth-join">
-              <span class="kb-label">队员？输入队长给的邀请码</span>
-              <div class="join-row">
-                <input x-model="inviteCode" placeholder="6 位邀请码" maxlength="6">
-                <button class="btn-ghost" @click="join()" :disabled="loading || !inviteCode">加入</button>
-              </div>
-            </div>
           </div>
         </section>
       </template>
@@ -139,6 +132,7 @@
               <h1>我的航行</h1>
             </div>
             <div class="header-actions">
+              <button class="btn-ghost" @click="openJoin()">+ 加入已有航线</button>
               <button class="btn-accent" @click="go('/projects/new')">+ 启动新航行</button>
             </div>
           </header>
@@ -154,6 +148,27 @@
               </article>
             </template>
             <p class="empty-state" x-show="!projects.length && !loading">还没有项目。启动一次新航行吧。</p>
+          </div>
+
+          <!-- 加入已有航线弹窗 -->
+          <div x-show="joinOpen" class="modal-overlay" @click.self="joinOpen=false" x-cloak>
+            <div class="modal">
+              <header class="modal-head">
+                <span class="eyebrow">加入航线</span>
+                <h3>输入队长给的邀请码</h3>
+              </header>
+              <div class="modal-body">
+                <input type="text" class="modal-input" x-model="joinCode" placeholder="6 位邀请码" maxlength="6"
+                  @keydown.enter="submitJoin()" :disabled="joinLoading">
+                <p class="auth-error" x-show="joinError" x-text="joinError" x-cloak></p>
+                <footer class="modal-actions">
+                  <button class="btn-accent" @click="submitJoin()" :disabled="joinLoading || !joinCode.trim()">
+                    <span x-text="joinLoading ? '加入中…' : '确认加入'"></span>
+                  </button>
+                  <button class="btn-ghost" @click="joinOpen=false" :disabled="joinLoading">取消</button>
+                </footer>
+              </div>
+            </div>
           </div>
         </section>
       </template>
@@ -174,13 +189,27 @@
             </div>
           </header>
 
-          <!-- 邀请码展示（仅队长，生成后显示） -->
-          <template x-if="currentRole === 'leader' && invite">
+          <!-- 邀请码展示（仅队长，列出所有有效邀请码） -->
+          <template x-if="currentRole === 'leader' && inviteList.length">
             <div class="invite-card">
-              <span class="iv-label">邀请码（7 天有效，队员注册后输入即可加入）</span>
+              <span class="iv-label">有效邀请码（7 天有效，队员注册后输入即可加入）</span>
+              <template x-for="iv in inviteList" :key="iv.id">
+                <div class="iv-row">
+                  <code class="iv-code" x-text="iv.code"></code>
+                  <button class="btn-ghost" @click="copyCode(iv.code)" x-text="inviteCopied ? '已复制' : '复制'"></button>
+                  <span class="iv-expire" x-text="'过期：' + iv.expires_at.slice(0, 10)"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- 刚生成的邀请码高亮提示（一次性） -->
+          <template x-if="currentRole === 'leader' && invite">
+            <div class="invite-card invite-highlight">
+              <span class="iv-label">✦ 刚生成的新邀请码（已加入上方列表，刷新不会丢失）</span>
               <div class="iv-row">
                 <code class="iv-code" x-text="invite.code"></code>
-                <button class="btn-ghost" @click="copyInviteCode()" x-text="inviteCopied ? '已复制' : '复制'"></button>
+                <button class="btn-ghost" @click="copyCode(invite.code)" x-text="inviteCopied ? '已复制' : '复制'"></button>
               </div>
               <span class="iv-expire" x-text="'过期：' + invite.expires_at.slice(0, 10)"></span>
             </div>
@@ -333,6 +362,7 @@
               <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
               <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
               <button class="btn-accent" @click="proposeReplan()">触发重规划</button>
+              <button class="btn-danger" @click="openDeleteProject()" x-show="currentRole === 'leader'">删除项目</button>
             </div>
           </header>
 
@@ -419,20 +449,39 @@
           <!-- 通知日志 -->
           <section class="notify-panel" id="notify" x-data="notifyLog($data)" x-init="init()">
             <header class="panel-head">
-              <h2>通知日志</h2>
-              <button class="btn-ghost" @click="testPush()">测试推送飞书</button>
+              <h2>通知日志 <em class="panel-sub" x-text="project ? `· 项目 #${project.id}` : ''"></em></h2>
+              <div class="panel-actions">
+                <button class="btn-ghost" @click="scanNow()" :disabled="scanning"
+                  x-text="scanning ? '扫描中…' : '立即扫描逾期'"></button>
+                <button class="btn-ghost" @click="testPush()">测试推送飞书</button>
+              </div>
             </header>
+
+            <!-- 定时调度器状态 -->
+            <div class="scheduler-status" x-show="schedulerStatus" x-cloak>
+              <span class="ss-label">定时扫描</span>
+              <span class="ss-state" x-text="schedulerStatus?.running ? '运行中' : '未启动'"></span>
+              <span class="ss-interval" x-text="`每 ${schedulerStatus?.interval_minutes} 分钟`"></span>
+              <span class="ss-next">下次：<strong x-text="formatNextRun(schedulerStatus?.next_run_at)"></strong></span>
+            </div>
+
+            <!-- 立即扫描结果 -->
+            <div class="scan-result" x-show="scanResult && !scanResult.error" x-cloak>
+              扫描完成：检查 <span x-text="scanResult?.scanned || 0"></span> 个逾期任务，
+              推送 <span x-text="scanResult?.notified || 0"></span> 个项目。
+            </div>
+
             <div class="notify-list" x-show="logs.length">
               <template x-for="log in logs" :key="log.id">
                 <article class="notify-item" :class="log.status">
                   <span class="notify-time" x-text="formatTime(log.created_at)"></span>
-                  <span class="notify-type" x-text="log.type"></span>
-                  <span class="notify-status" x-text="log.status"></span>
+                  <span class="notify-type" :class="typeMeta(log.type).cls" x-text="typeMeta(log.type).label"></span>
+                  <span class="notify-status" x-text="statusLabel(log.status)"></span>
                   <p x-text="log.content"></p>
                 </article>
               </template>
             </div>
-            <p class="empty-state" x-show="!logs.length">暂无通知。点击"测试推送飞书"看 Agent 主动打扰。</p>
+            <p class="empty-state" x-show="!logs.length">暂无通知。点击"测试推送飞书"看 Agent 主动打扰，或"立即扫描逾期"触发定时任务。</p>
           </section>
         </section>
       </template>
@@ -519,6 +568,28 @@
                 <span x-text="deleteTaskLoading ? '删除中…' : '确认删除'"></span>
               </button>
               <button class="btn-ghost" @click="deleteTaskTarget=null" :disabled="deleteTaskLoading">取消</button>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+      <!-- 删除项目确认弹窗（仅队长） -->
+      <div x-show="deleteProjectOpen" class="modal-overlay" @click.self="deleteProjectOpen=false" x-cloak>
+        <div class="modal modal-danger">
+          <header class="modal-head">
+            <span class="eyebrow">危险操作</span>
+            <h3>确认删除项目</h3>
+          </header>
+          <div class="modal-body">
+            <p class="rationale danger-warn">
+              此操作将永久删除项目《<strong x-text="project?.name"></strong>》及其所有里程碑、任务、成员数据，且不可恢复。
+              <br>队员将收到飞书解散通知。
+            </p>
+            <footer class="modal-actions">
+              <button class="btn-danger" @click="confirmDeleteProject()" :disabled="deleteProjectLoading">
+                <span x-text="deleteProjectLoading ? '删除中…' : '确认删除'"></span>
+              </button>
+              <button class="btn-ghost" @click="deleteProjectOpen=false" :disabled="deleteProjectLoading">取消</button>
             </footer>
           </div>
         </div>

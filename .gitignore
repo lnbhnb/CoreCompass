@@ -5,6 +5,9 @@ __pycache__/
 **/data/*.db
 **/data/*.db-journal
 node_modules/
+package.json
+package-lock.json
+e2e_test.js
 .DS_Store
 .vscode/
 .idea/

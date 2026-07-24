@@ -5,12 +5,16 @@ function memberProgress(parent) {
     reviewComment: '',
     invite: null,
     inviteCopied: false,
+    inviteList: [],
+    joinCode: '',
+    joinError: null,
 
     get currentRole() { return parent.currentRole; },
     get projectId() { return parent.project ? parent.project.id : null; },
 
     async init() {
       await this.load();
+      await this.loadInviteList();
     },
 
     async load() {
@@ -27,6 +31,16 @@ function memberProgress(parent) {
       }
     },
 
+    async loadInviteList() {
+      if (!parent.project || parent.currentRole !== 'leader') return;
+      try {
+        const r = await fetch(`/api/projects/${parent.project.id}/invites`, {
+          headers: parent.authHeaders()
+        });
+        this.inviteList = r.ok ? await r.json() : [];
+      } catch { this.inviteList = []; }
+    },
+
     async generateInvite() {
       const r = await fetch(`/api/projects/${parent.project.id}/invites`, {
         method: 'POST',
@@ -35,12 +49,14 @@ function memberProgress(parent) {
       if (!r.ok) { alert('生成失败'); return; }
       this.invite = await r.json();
       this.inviteCopied = false;
+      await this.loadInviteList();
     },
 
-    copyInviteCode() {
-      if (!this.invite) return;
-      navigator.clipboard.writeText(this.invite.code);
+    copyCode(code) {
+      if (!code) return;
+      navigator.clipboard.writeText(code);
       this.inviteCopied = true;
+      setTimeout(() => { this.inviteCopied = false; }, 1500);
     },
 
     async review(taskId, decision) {

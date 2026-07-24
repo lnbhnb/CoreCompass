@@ -102,6 +102,12 @@ def update_project_status(pid, status):
         conn.execute("UPDATE projects SET status=? WHERE id=?", (status, pid))
 
 
+def delete_project(pid):
+    """硬删除项目。依赖 schema 的 ON DELETE CASCADE 级联清理 milestones/tasks/members 等。"""
+    with db.get_conn() as conn:
+        conn.execute("DELETE FROM projects WHERE id=?", (pid,))
+
+
 def insert_checkin(task_id, note):
     with db.get_conn() as conn:
         conn.execute("INSERT INTO checkins(task_id, note) VALUES(?,?)", (task_id, note))

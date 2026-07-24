@@ -89,7 +89,13 @@ function app() {
     },
 
     async triggerOverdue() {
-      await fetch(`/api/replan/${this.project.id}/trigger_overdue`, { method: 'POST' });
+      try {
+        const r = await fetch(`/api/replan/${this.project.id}/trigger_overdue`, {
+          method: 'POST', headers: this.authHeaders()
+        });
+        const data = r.ok ? await r.json() : { message: '操作失败' };
+        alert(data.message || '已触发偏航');
+      } catch (e) { alert('模拟偏航失败：' + e.message); }
       await this.loadProject(this.project.id);
     },
 
@@ -106,7 +112,9 @@ function app() {
       this.replanLoading = true;
       this.replanProposal = null;
       try {
-        const r = await fetch(`/api/replan/${this.project.id}/propose`, { method: 'POST' });
+        const r = await fetch(`/api/replan/${this.project.id}/propose`, {
+          method: 'POST', headers: this.authHeaders()
+        });
         const data = await r.json();
         this.replanGapDays = data.gap_days;
         this.replanProposal = data.proposal;
@@ -118,7 +126,7 @@ function app() {
       this.replanApplying = true;
       try {
         const r = await fetch(`/api/replan/${this.project.id}/apply`, {
-          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          method: 'POST', headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
           body: JSON.stringify({ proposal: this.replanProposal })
         });
         this.replanResult = await r.json();
@@ -183,6 +191,36 @@ function app() {
         this.deleteTaskTarget = null;
         await this.loadProject(this.project.id);
       } finally { this.deleteTaskLoading = false; }
+    },
+
+    // —— 队长删除项目 ——
+    deleteProjectOpen: false,
+    deleteProjectLoading: false,
+
+    openDeleteProject() {
+      this.deleteProjectOpen = true;
+    },
+
+    async confirmDeleteProject() {
+      if (!this.project) return;
+      this.deleteProjectLoading = true;
+      try {
+        const r = await fetch(`/api/projects/${this.project.id}`, {
+          method: 'DELETE',
+          headers: this.authHeaders()
+        });
+        if (!r.ok) {
+          const e = await r.json().catch(() => ({}));
+          throw new Error(e.detail || '删除失败');
+        }
+        this.deleteProjectOpen = false;
+        this.project = null;
+        this.navigate('/projects');
+      } catch (e) {
+        alert('删除项目失败：' + e.message);
+      } finally {
+        this.deleteProjectLoading = false;
+      }
     },
 
     // —— 罗盘仪表辅助方法 ——

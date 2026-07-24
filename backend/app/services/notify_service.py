@@ -4,6 +4,7 @@ import base64
 import time
 import json
 import logging
+from datetime import datetime, timedelta
 import httpx
 from apscheduler.schedulers.background import BackgroundScheduler
 from app import config, models
@@ -66,7 +67,8 @@ def start_scheduler():
         return
     _scheduler = BackgroundScheduler()
     _scheduler.add_job(scan_and_notify_overdue, "interval",
-                       minutes=config.SCHEDULER_INTERVAL_MINUTES, id="scan_overdue")
+                       minutes=config.SCHEDULER_INTERVAL_MINUTES, id="scan_overdue",
+                       next_run_time=datetime.now() + timedelta(seconds=30))
     _scheduler.start()
 
 
@@ -75,3 +77,14 @@ def stop_scheduler():
     if _scheduler:
         _scheduler.shutdown(wait=False)
         _scheduler = None
+
+
+def get_scheduler_status():
+    """返回定时调度器状态：是否运行、间隔分钟、下次扫描时间。"""
+    if _scheduler is None or not _scheduler.running:
+        return {"running": False, "interval_minutes": config.SCHEDULER_INTERVAL_MINUTES,
+                "next_run_at": None}
+    job = _scheduler.get_job("scan_overdue") if _scheduler else None
+    next_run = job.next_run_time.isoformat() if job and job.next_run_time else None
+    return {"running": True, "interval_minutes": config.SCHEDULER_INTERVAL_MINUTES,
+            "next_run_at": next_run}

@@ -19,6 +19,15 @@ def create_invite(pid: int, authorization: str | None = Header(None)):
     return member_service.generate_invite(pid, token)
 
 
+@router.get("/api/projects/{pid}/invites")
+def list_invites(pid: int, authorization: str | None = Header(None)):
+    """列出项目下未使用且未过期的邀请码（仅队长可见）。"""
+    token = _token(authorization)
+    user = deps.get_current_user(token)
+    deps.require_leader(pid, user)
+    return models.list_active_invites_for_project(pid)
+
+
 @router.get("/api/projects/{pid}/members")
 def list_members(pid: int, authorization: str | None = Header(None)):
     token = _token(authorization)

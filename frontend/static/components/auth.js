@@ -2,7 +2,6 @@ function authView(parent) {
   return {
     mode: 'login',
     form: { username: '', password: '', display_name: '' },
-    inviteCode: '',
     error: null,
     loading: false,
 
@@ -26,25 +25,6 @@ function authView(parent) {
         const data = await r.json();
         parent.setToken(data.token);
         await parent.fetchUser();
-        parent.navigate('projects');
-      } catch (e) {
-        this.error = e.message;
-      } finally {
-        this.loading = false;
-      }
-    },
-
-    async join() {
-      if (!this.inviteCode) return;
-      this.loading = true;
-      this.error = null;
-      try {
-        const r = await fetch('/api/auth/join', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json', ...parent.authHeaders() },
-          body: JSON.stringify({ invite_code: this.inviteCode })
-        });
-        if (!r.ok) throw new Error((await r.json()).detail || '加入失败');
         parent.navigate('projects');
       } catch (e) {
         this.error = e.message;

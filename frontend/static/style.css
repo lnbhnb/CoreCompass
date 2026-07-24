@@ -533,6 +533,53 @@ button:disabled {
   border-color: #b71c1c;
 }
 
+/* 独立危险按钮：用于 header 中的"删除项目"等高危入口 */
+.btn-danger {
+  background: transparent;
+  color: #ef5350;
+  border: 1px solid rgba(239, 83, 80, 0.5);
+  font-weight: 600;
+  font-size: 13px;
+  padding: 8px 17px;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: rgba(239, 83, 80, 0.15);
+  border-color: #ef5350;
+  color: #ffcdd2;
+  box-shadow: 0 2px 12px -2px rgba(239, 83, 80, 0.4);
+}
+
+/* 弹窗内的实心危险确认按钮 */
+.modal-actions .btn-danger {
+  background: #c62828;
+  border-color: #c62828;
+  color: var(--parchment);
+}
+
+.modal-actions .btn-danger:hover:not(:disabled) {
+  background: #b71c1c;
+  border-color: #b71c1c;
+}
+
+.modal-danger {
+  border-top: 2px solid #ef5350;
+  box-shadow: 0 -8px 30px -8px rgba(239, 83, 80, 0.3), 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+}
+
+.modal-danger::before {
+  background: linear-gradient(90deg, #ef5350 0%, #ef5350 30%, transparent 30%, transparent 35%, #b71c1c 35%, #b71c1c 45%, transparent 45%);
+}
+
+.danger-warn {
+  color: #ffcdd2;
+  line-height: 1.7;
+}
+
+.danger-warn strong {
+  color: #ef5350;
+}
+
 .btn-add-task {
   width: 100%;
   margin-top: 8px;
@@ -1322,6 +1369,78 @@ textarea::placeholder {
   font-weight: 500;
 }
 
+.panel-sub {
+  font-size: 13px;
+  font-style: normal;
+  color: var(--parchment-dim);
+  font-weight: 400;
+  letter-spacing: 0.05em;
+}
+
+.panel-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.scheduler-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: var(--ink);
+  border: 1px solid var(--line);
+  border-left: 2px solid var(--brass);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--parchment-dim);
+}
+
+.scheduler-status .ss-state {
+  color: var(--pass, #6ad7a5);
+  font-weight: 600;
+}
+
+.scheduler-status .ss-state::before {
+  content: '●';
+  margin-right: 4px;
+  animation: pulse 2s ease-in-out infinite;
+}
+
+.scheduler-status .ss-interval {
+  font-family: var(--font-mono);
+  color: var(--brass);
+}
+
+.scheduler-status .ss-next strong {
+  color: var(--parchment);
+  font-family: var(--font-mono);
+}
+
+.scan-result {
+  padding: 10px 14px;
+  margin-bottom: 14px;
+  background: rgba(106, 215, 165, 0.08);
+  border: 1px solid var(--pass, #6ad7a5);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--parchment);
+}
+
+@keyframes pulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.4;
+  }
+}
+
 .notify-list {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(360px, 1fr));
@@ -1944,6 +2063,24 @@ textarea::placeholder {
   gap: 8px;
 }
 
+.invite-highlight {
+  border-color: var(--compass, #e8743c);
+  background: linear-gradient(135deg, rgba(232, 116, 60, 0.06), rgba(201, 169, 97, 0.04));
+  animation: inviteGlow 2s ease-in-out 2;
+}
+
+@keyframes inviteGlow {
+
+  0%,
+  100% {
+    box-shadow: 0 0 0 0 rgba(232, 116, 60, 0);
+  }
+
+  50% {
+    box-shadow: 0 0 18px 2px rgba(232, 116, 60, 0.25);
+  }
+}
+
 .iv-label {
   font-size: 12px;
   color: var(--parchment-dim);
@@ -1953,6 +2090,12 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   gap: 12px;
+  padding: 6px 0;
+  border-bottom: 1px dashed rgba(201, 169, 97, 0.15);
+}
+
+.iv-row:last-child {
+  border-bottom: none;
 }
 
 .iv-code {
