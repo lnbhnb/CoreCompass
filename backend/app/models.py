@@ -108,6 +108,14 @@ def delete_project(pid):
         conn.execute("DELETE FROM projects WHERE id=?", (pid,))
 
 
+def update_project_notify_config(pid, webhook_url, secret):
+    """更新项目级飞书 webhook 配置。传 None 清空字段。"""
+    with db.get_conn() as conn:
+        conn.execute(
+            "UPDATE projects SET feishu_webhook_url=?, feishu_secret=? WHERE id=?",
+            (webhook_url, secret, pid))
+
+
 def insert_checkin(task_id, note):
     with db.get_conn() as conn:
         conn.execute("INSERT INTO checkins(task_id, note) VALUES(?,?)", (task_id, note))

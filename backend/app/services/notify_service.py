@@ -21,19 +21,30 @@ def _sign_feishu(secret: str):
 
 
 def send_feishu(text: str, project_id: int = None, msg_type: str = "manual_test") -> dict:
-    if not config.FEISHU_WEBHOOK_URL:
+    # 解析有效 webhook：项目级优先，全局兜底
+    webhook_url = config.FEISHU_WEBHOOK_URL
+    secret = config.FEISHU_SECRET
+    if project_id:
+        project = models.get_project(project_id)
+        if project:
+            if project.get("feishu_webhook_url"):
+                webhook_url = project["feishu_webhook_url"]
+            if project.get("feishu_secret"):
+                secret = project["feishu_secret"]
+
+    if not webhook_url:
         logger.warning("未配置 FEISHU_WEBHOOK_URL，跳过推送")
         result = {"status": "failed", "response": "webhook 未配置"}
         models.insert_notification(project_id, msg_type, text, "failed",
                                    json.dumps(result, ensure_ascii=False))
         return result
     payload = {"msg_type": "text", "content": {"text": text}}
-    if config.FEISHU_SECRET:
-        ts, sign = _sign_feishu(config.FEISHU_SECRET)
+    if secret:
+        ts, sign = _sign_feishu(secret)
         payload["timestamp"] = ts
         payload["sign"] = sign
     try:
-        resp = httpx.post(config.FEISHU_WEBHOOK_URL, json=payload, timeout=10)
+        resp = httpx.post(webhook_url, json=payload, timeout=10)
         resp_data = resp.json()
         status = "sent" if resp.status_code == 200 and resp_data.get("StatusCode", 0) == 0 else "failed"
         result = {"status": status, "response": json.dumps(resp_data, ensure_ascii=False)}

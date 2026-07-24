@@ -608,6 +608,16 @@ button:disabled {
   border-color: var(--compass);
 }
 
+.form-label {
+  display: block;
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brass);
+  margin-bottom: 6px;
+  font-weight: 600;
+}
+
 /* ============ 创建项目视图（双栏 · 填充右侧） ============ */
 .create-view {
   position: relative;

@@ -362,6 +362,7 @@
               <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
               <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
               <button class="btn-accent" @click="proposeReplan()">触发重规划</button>
+              <button class="btn-ghost" @click="openNotifyConfig()" x-show="currentRole === 'leader'">通知设置</button>
               <button class="btn-danger" @click="openDeleteProject()" x-show="currentRole === 'leader'">删除项目</button>
             </div>
           </header>
@@ -568,6 +569,30 @@
                 <span x-text="deleteTaskLoading ? '删除中…' : '确认删除'"></span>
               </button>
               <button class="btn-ghost" @click="deleteTaskTarget=null" :disabled="deleteTaskLoading">取消</button>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+      <!-- 通知设置弹窗（仅队长） -->
+      <div x-show="notifyConfigOpen" class="modal-overlay" @click.self="notifyConfigOpen=false" x-cloak>
+        <div class="modal">
+          <header class="modal-head">
+            <span class="eyebrow">飞书通知</span>
+            <h3>项目通知设置</h3>
+          </header>
+          <div class="modal-body">
+            <p class="rationale">为本项目配置专属飞书群机器人，通知将发到这个群。留空则用全局默认群。</p>
+            <label class="form-label">Webhook URL</label>
+            <input type="text" class="modal-input" x-model="notifyConfig.webhook_url"
+              placeholder="https://open.feishu.cn/open-apis/bot/v2/hook/...">
+            <label class="form-label" style="margin-top:14px">签名校验密钥（可选）</label>
+            <input type="text" class="modal-input" x-model="notifyConfig.secret" placeholder="飞书机器人安全设置中启用的密钥">
+            <footer class="modal-actions">
+              <button class="btn-accent" @click="saveNotifyConfig()" :disabled="notifyConfigLoading">
+                <span x-text="notifyConfigLoading ? '保存中…' : '保存'"></span>
+              </button>
+              <button class="btn-ghost" @click="notifyConfigOpen=false" :disabled="notifyConfigLoading">取消</button>
             </footer>
           </div>
         </div>

@@ -223,6 +223,40 @@ function app() {
       }
     },
 
+    // —— 项目飞书通知配置 ——
+    notifyConfigOpen: false,
+    notifyConfigLoading: false,
+    notifyConfig: { webhook_url: '', secret: '' },
+
+    openNotifyConfig() {
+      this.notifyConfig = {
+        webhook_url: this.project?.feishu_webhook_url || '',
+        secret: this.project?.feishu_secret || ''
+      };
+      this.notifyConfigOpen = true;
+    },
+
+    async saveNotifyConfig() {
+      this.notifyConfigLoading = true;
+      try {
+        const r = await fetch(`/api/projects/${this.project.id}`, {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+          body: JSON.stringify({
+            feishu_webhook_url: this.notifyConfig.webhook_url || null,
+            feishu_secret: this.notifyConfig.secret || null
+          })
+        });
+        if (!r.ok) throw new Error((await r.json().catch(() => ({}))).detail || '保存失败');
+        this.notifyConfigOpen = false;
+        await this.loadProject(this.project.id);
+      } catch (e) {
+        alert('保存失败：' + e.message);
+      } finally {
+        this.notifyConfigLoading = false;
+      }
+    },
+
     // —— 罗盘仪表辅助方法 ——
     needleAngle() {
       if (!this.milestones.length) return 0;

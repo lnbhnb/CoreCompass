@@ -17,6 +17,9 @@ FIELD_MIGRATIONS = [
     "ALTER TABLE users ADD COLUMN token_expires_at TEXT",
     "ALTER TABLE invite_codes ADD COLUMN fail_count INTEGER NOT NULL DEFAULT 0",
     "ALTER TABLE invite_codes ADD COLUMN locked_until TEXT",
+    # 项目级飞书 webhook 配置（一项目一群）
+    "ALTER TABLE projects ADD COLUMN feishu_webhook_url TEXT",
+    "ALTER TABLE projects ADD COLUMN feishu_secret TEXT",
 ]
 
 

@@ -13,6 +13,11 @@ class ProjectCreate(BaseModel):
     topic_desc: str
 
 
+class ProjectNotifyConfig(BaseModel):
+    feishu_webhook_url: str | None = None
+    feishu_secret: str | None = None
+
+
 def _extract_token(authorization: str | None) -> str | None:
     if not authorization or not authorization.startswith("Bearer "):
         return None
@@ -78,3 +83,13 @@ def delete_project(pid: int, authorization: str | None = Header(None)):
 
     models.delete_project(pid)
     return {"deleted": pid}
+
+
+@router.patch("/api/projects/{pid}")
+def update_project_notify_config(pid: int, req: ProjectNotifyConfig,
+                                  authorization: str | None = Header(None)):
+    """队长更新项目的飞书通知配置（项目级 webhook，一项目一群）。"""
+    user = _current_user(authorization)
+    deps.require_leader(pid, user)
+    models.update_project_notify_config(pid, req.feishu_webhook_url, req.feishu_secret)
+    return {"updated": pid}
