@@ -18,7 +18,13 @@ def _load_index() -> dict:
 
 
 def match_references(topic: str) -> dict:
-    """按课题关键词匹配三类素材"""
+    """按课题关键词匹配三类素材。
+
+    匹配策略（避免空召回）：
+    1. 课题含显式关键词 → 精确召回
+    2. 课题包含项目类型子串（如"小程序"、"api"、"web"）→ 模糊召回
+    3. 都未命中 → 回退到通用 web 项目（flask），保证 LLM 始终有参考
+    """
     topic_lower = topic.lower()
     index = _load_index()
 
@@ -29,9 +35,21 @@ def match_references(topic: str) -> dict:
                 matched.append(name)
         return matched
 
+    projects = _match("projects")[:MAX_PROJECTS]
+    # 兜底：若未匹配到任何项目，按课题特征回退
+    if not projects:
+        if any(k in topic_lower for k in ["小程序", "跨端", "微信", "taro"]):
+            projects = ["taro"]
+        elif any(k in topic_lower for k in ["异步", "restful", "openapi", "fastapi"]):
+            projects = ["fastapi"]
+        elif any(k in topic_lower for k in ["cms", "内容管理", "admin", "django"]):
+            projects = ["django"]
+        else:
+            projects = ["flask"]  # 通用 web 后端兜底
+
     return {
         "sdlc": "hybrid",  # 校园团队始终推荐混合模型
-        "projects": _match("projects")[:MAX_PROJECTS],
+        "projects": projects,
         "contests": _match("contests"),
     }
 

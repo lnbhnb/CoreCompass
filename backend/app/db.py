@@ -13,6 +13,10 @@ FIELD_MIGRATIONS = [
     "ALTER TABLE tasks ADD COLUMN reviewed_by INTEGER REFERENCES users(id)",
     "ALTER TABLE tasks ADD COLUMN reviewed_at TEXT",
     "ALTER TABLE tasks ADD COLUMN review_comment TEXT",
+    # 安全加固迁移（token 过期 + 邀请码防爆破）
+    "ALTER TABLE users ADD COLUMN token_expires_at TEXT",
+    "ALTER TABLE invite_codes ADD COLUMN fail_count INTEGER NOT NULL DEFAULT 0",
+    "ALTER TABLE invite_codes ADD COLUMN locked_until TEXT",
 ]
 
 

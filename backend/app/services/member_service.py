@@ -28,12 +28,17 @@ def join_with_code(code, member_token):
         raise ValueError("邀请码已被使用")
     if datetime.fromisoformat(invite["expires_at"]) < datetime.now():
         raise ValueError("邀请码已过期")
+    # 锁定校验：失败 5 次后 15 分钟内禁止再试
+    locked_until = invite.get("locked_until")
+    if locked_until and datetime.fromisoformat(locked_until) > datetime.now():
+        raise ValueError(f"邀请码已被锁定，请 {locked_until} 后再试")
     # 幂等：已是成员直接返回，不消耗码
     existing = models.get_project_member(invite["project_id"], member["id"])
     if existing:
         return {"project_id": invite["project_id"]}
     models.add_project_member(invite["project_id"], member["id"], "member")
     models.mark_invite_used(invite["id"], member["id"])
+    models.reset_invite_fail(invite["id"])
     return {"project_id": invite["project_id"]}
 
 

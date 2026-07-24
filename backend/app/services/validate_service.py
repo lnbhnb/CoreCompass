@@ -18,6 +18,13 @@ def validate_sql(content: str) -> Dict[str, Any]:
         reasons.append("缺少 PRIMARY KEY")
     if "FOREIGN KEY" not in sql_text:
         reasons.append("缺少 FOREIGN KEY（外键）")
+    # 反凑数：每张表必须有列定义（CREATE TABLE name (...) 括号内至少 2 列）
+    table_blocks = re.findall(r"CREATE\s+TABLE\s+\w+\s*\(([^)]+)\)", content, re.IGNORECASE)
+    for i, block in enumerate(table_blocks):
+        # 列数估算：按逗号分割，剔除约束子句
+        cols = [c.strip() for c in block.split(",") if c.strip()]
+        if len(cols) < 2:
+            reasons.append(f"第 {i+1} 张表列定义不足（疑似空壳表）")
     return {"pass": not reasons, "reasons": reasons}
 
 
@@ -30,6 +37,12 @@ def validate_md(content: str) -> Dict[str, Any]:
     missing = [k for k in ["需求", "功能", "用户"] if k not in content]
     if missing:
         reasons.append(f"缺少关键词：{missing}")
+    # 反凑数：分词去重率检测，避免重复字符串凑字数
+    tokens = re.findall(r"[\u4e00-\u9fa5]|[a-zA-Z]+", content)
+    if tokens:
+        unique_ratio = len(set(tokens)) / len(tokens)
+        if unique_ratio < 0.4:
+            reasons.append(f"字符去重率过低：{unique_ratio:.0%}（疑似重复凑字数）")
     return {"pass": not reasons, "reasons": reasons}
 
 
@@ -40,6 +53,12 @@ def validate_code(content: str, language: str) -> Dict[str, Any]:
             tree = ast.parse(content)
             defs = [n for n in ast.walk(tree)
                     if isinstance(n, (ast.FunctionDef, ast.ClassDef))]
+            # 反凑数：每个函数必须有非空 body
+            empty_funcs = [n for n in ast.walk(tree)
+                           if isinstance(n, ast.FunctionDef)
+                           and (not n.body or all(isinstance(b, ast.Pass) for b in n.body))]
+            if empty_funcs:
+                reasons.append(f"存在 {len(empty_funcs)} 个空函数体（疑似空壳）")
         else:
             defs = re.findall(r"(function\s+\w+|class\s+\w+|=>\s*{)", content)
         if len(defs) < 2:

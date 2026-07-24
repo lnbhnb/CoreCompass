@@ -1,8 +1,10 @@
-# CoreCompass · 校园项目"伪需求"粉碎机
+# CoreCompass · 校园项目进度护栏
 
-> 让 AI Agent 不再只会附和，而是真正把关你的项目进度。
+> 规则 + LLM 混合架构：让大模型不再只会附和，而是用确定性状态机真正把关项目进度。
 
-**CoreCompass** 是一个面向高校学生团队的 AI 项目管理 Agent。它通过"真实状态机 + LLM"的混合架构，解决了通用 AI 聊天工具"只附和不把关"的痛点，让学生团队的大课题从"无从下手"走向"可控交付"。
+**CoreCompass** 是一个面向高校学生团队的进度护栏系统，采用"确定性状态机 + LLM"的混合架构，把通用 AI 聊天工具"只附和不把关"的痛点转化为可量化的进度约束，让学生团队的大课题从"无从下手"走向"可控交付"。
+
+> **定位说明**：CoreCompass 不是通用 AI Agent，而是"LLM 辅助 + 规则护栏"的项目管理工具。LLM 仅在初始拆解和重规划提案两处参与决策；所有状态转移、产物校验、任务锁定均由确定性代码强制约束，避免 LLM 失控或幻觉影响项目状态。
 
 ## 它解决什么问题？
 
@@ -20,12 +22,23 @@
 
 每个里程碑声明 `expected_artifact_type`（sql / md / code / json / yaml），上传产物后由对应校验器做**结构化校验**，不通过则里程碑 `locked`，无法进入下一阶段。
 
-- **SQL**：≥2 表、含 PRIMARY KEY、含 FOREIGN KEY
-- **Markdown**：≥500 字、含 H2 标题、无 TODO 标记
-- **Code**：AST 解析、含函数/类定义、非空
-- **JSON/YAML**：语法可解析、schema 结构合理
+- **SQL**：≥2 表、含 PRIMARY KEY、含 FOREIGN KEY、每表必须有列定义（拒绝空壳表）
+- **Markdown**：≥500 字、含 ≥3 H2 标题、含"需求/功能/用户"关键词、去重率 < 60%（拒绝凑字数）
+- **Code**：AST 解析、含 ≥2 函数/类定义、函数体非空、源码 ≥50 字符
+- **JSON/YAML**：语法可解析、顶层为对象、必含 `name` 和 `endpoints`
 
 > Notion、语雀只存文档不校验；通用 LLM 只对话不把关。CoreCompass 强制校验真实产物。
+
+#### 与 CI / lint 的区别（评委常问）
+
+| 维度 | GitHub Actions / lint | **CoreCompass 硬验收** |
+|---|---|---|
+| 校验对象 | 代码本身（语法、单测、风格） | 项目产物（需求文档、数据库 schema、API 设计稿） |
+| 触发时机 | commit / push | 里程碑节点（与项目阶段绑定） |
+| 失败后果 | 阻塞合并请求 | **状态机锁定**，无法进入下一阶段 |
+| 校验维度 | 代码质量 | 产物结构完整性（SQL 表数/外键、MD 字数/标题层级） |
+
+CoreCompass 不替代 CI，而是在 CI 之前的"项目产物阶段"做门禁，与 CI 形成互补。
 
 ### 突出点② 动态重算（GPS 式重规划）
 
@@ -36,6 +49,15 @@
 3. **铁律层**：拒绝砍 `core` 任务，强制砍最高工时的 `optional`
 
 > 就像 GPS 检测到堵车会重新规划路线，CoreCompass 检测到进度偏航会重新规划任务。
+
+#### 0.6 效率系数依据（评委常问）
+
+参考校园团队实际有效产出测算：
+- 学生日均可投入工时 ≈ 8 小时
+- 扣除上课（≈4h）、考试周缓冲、社交、通勤等无效时段，**有效产出约 5 小时**
+- 取整系数 `5 / 8 ≈ 0.6`
+
+该系数可在 [backend/app/services/replan_service.py](backend/app/services/replan_service.py) 的 `EFFICIENCY_FACTOR` 处校准（竞赛冲刺期可调至 0.8，期末考试期可调至 0.3）。规则层始终先于 LLM 计算，缺口为 0 或负数时不触发 LLM 提案，避免无谓调用。
 
 ### 突出点③ 主动打扰（反"被动响应"）
 
@@ -283,11 +305,52 @@ CoreCompass/
 
 ## 创新点对比
 
-| 创新 | 与现有工具的差异 |
+CoreCompass 与主流工具的差异（评委常问"这不就是 XX 吗？"）：
+
+| 维度 | Notion / 语雀 | 飞书 / 钉钉任务 | GitHub Projects | GitHub Actions / CI | **CoreCompass** |
+|---|---|---|---|---|---|
+| 校验产物结构 | ❌ 只存文档 | ❌ 只跟踪任务 | ❌ 只看 issue | ✅ 但只校验代码 | ✅ 跨 5 类产物（sql/md/code/json/yaml） |
+| 校验失败锁进度 | ❌ | ❌ | ❌ | ❌（仅阻塞合并） | ✅ 状态机锁定下一阶段 |
+| 主动重规划 | ❌ | ❌ | ❌ | ❌ | ✅ 算缺口 + LLM 提案 + 铁律保底 |
+| 主动巡检 + 推送 | 部分（手动） | 部分（机器人需触发） | ❌ | ❌ | ✅ APScheduler + 飞书 webhook |
+| 适配学生竞赛场景 | 通用 | 通用 | 偏工程 | 偏工程 | ✅ 知识库注入赛程 / SDLC / 相似项目 |
+| 校园团队效率系数 | ❌ | ❌ | ❌ | ❌ | ✅ 0.6 校准系数 |
+
+**一句话定位**：CoreCompass 不是 Notion / 飞书 / GitHub Actions 的替代品，而是把它们都没做好的"产物结构门禁 + 进度偏航重规划"环节补齐，专注校园竞赛场景。
+
+## 离线降级（Demo 兜底）
+
+当 LLM API 或飞书 webhook 不可达时，CoreCompass 自动降级，确保主流程不中断：
+
+| 故障点 | 降级行为 |
 |---|---|
-| 反 AI 盲信 | Notion/语雀只存文档不校验；通用 LLM 只对话不把关。CoreCompass 强制校验真实产物 |
-| GPS 式重算 | Jira/Teambition 只显示逾期不主动决策；CoreCompass 自动算缺口 + LLM 提案 + 铁律保底 |
-| 主动打扰 | 飞书/钉钉的提醒依赖人触发；CoreCompass 的 Agent 主动巡检并推送 |
+| LLM API（DeepSeek）不可达 | 项目拆解使用预设模板（SDLC 混合模型 + 通用里程碑），重规划只走规则层（强制砍最高工时 optional） |
+| 飞书 webhook 不可达 | 通知仅写入 DB 日志（`notifications` 表），状态记为 `failed`，不影响主流程 |
+| SQLite 文件损坏 | 启动时 `init_db()` 幂等重建 schema，仅丢失数据不阻断服务启动 |
+
+**现场 Demo 兜底建议**：录屏 + 离线降级模式双保险。若现场网络异常，可关闭 `.env` 中的 `DEEPSEEK_API_KEY` 演示降级模式，再切回在线模式重放完整流程。
+
+## 安全说明（Demo 版限制）
+
+本项目为比赛 Demo，安全性做了基础处理但未达生产级：
+
+- ✅ **密码哈希**：PBKDF2-HMAC-SHA256 + 16 字节随机盐 + 100,000 次迭代（[auth_service.py](backend/app/services/auth_service.py)）
+- ✅ **邀请码防爆破**：6 位 + 7 天有效 + 失败 5 次锁定 15 分钟（[member_service.py](backend/app/services/member_service.py)）
+- ✅ **登录 token 过期**：7 天有效期，过期自动失效
+- ✅ **常量时间比较**：`secrets.compare_digest` 防 timing attack
+- ⚠️ **未启用 HTTPS / CSRF 防护**——部署时需在反向代理层（Nginx / Caddy）补齐
+- ⚠️ **token 明文存 DB**——Demo 简化处理，生产应使用 Redis + 加密存储
+
+## 协作流程的语义边界
+
+任务审阅与里程碑校验是**两条独立并行**的流水线，互不阻塞：
+
+| 流水线 | 责任人 | 关注点 | 状态机 |
+|---|---|---|---|
+| 任务审阅 | 队长 | 队员**有没有认真做**（人审） | `pending_review → approved / rejected` |
+| 里程碑校验 | 系统 | 产物**结构合不合规**（机审） | `planned → done / locked` |
+
+**为什么独立**：人审通过不代表产物结构合规（队长可能放水），机审通过也不代表队员认真做了（可能凑数）。两条线交叉验证，降低单点失守风险。
 
 ## 落地价值
 

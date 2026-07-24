@@ -1,3 +1,4 @@
+from datetime import datetime, timedelta
 from app import db
 
 
@@ -154,11 +155,11 @@ def list_overdue_tasks(pid=None):
 
 
 # ============ 用户与认证 ============
-def create_user(username, password_hash, display_name, token):
+def create_user(username, password_hash, display_name, token, token_expires_at=None):
     with db.get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO users(username, password_hash, display_name, token) VALUES(?,?,?,?)",
-            (username, password_hash, display_name, token))
+            "INSERT INTO users(username, password_hash, display_name, token, token_expires_at) VALUES(?,?,?,?,?)",
+            (username, password_hash, display_name, token, token_expires_at))
         return cur.lastrowid
 
 
@@ -182,7 +183,7 @@ def get_user(uid):
 
 def clear_user_token(uid):
     with db.get_conn() as conn:
-        conn.execute("UPDATE users SET token=NULL WHERE id=?", (uid,))
+        conn.execute("UPDATE users SET token=NULL, token_expires_at=NULL WHERE id=?", (uid,))
 
 
 # ============ 项目成员 ============
@@ -244,6 +245,45 @@ def get_invite_by_code(code):
 def mark_invite_used(invite_id, user_id):
     with db.get_conn() as conn:
         conn.execute("UPDATE invite_codes SET used_by_user_id=? WHERE id=?", (user_id, invite_id))
+
+
+def increment_invite_fail(invite_id, lock_minutes=15):
+    """邀请码失败计数 +1，达到阈值锁定。返回当前 fail_count。"""
+    with db.get_conn() as conn:
+        row = conn.execute(
+            "SELECT fail_count FROM invite_codes WHERE id=?", (invite_id,)).fetchone()
+        if not row:
+            return 0
+        new_count = row["fail_count"] + 1
+        if new_count >= 5:
+            locked_until = (datetime.now() + timedelta(minutes=lock_minutes)).isoformat()
+            conn.execute(
+                "UPDATE invite_codes SET fail_count=?, locked_until=? WHERE id=?",
+                (new_count, locked_until, invite_id))
+        else:
+            conn.execute(
+                "UPDATE invite_codes SET fail_count=? WHERE id=?", (new_count, invite_id))
+        return new_count
+
+
+def reset_invite_fail(invite_id):
+    """成功加入后清零失败计数。"""
+    with db.get_conn() as conn:
+        conn.execute(
+            "UPDATE invite_codes SET fail_count=0, locked_until=NULL WHERE id=?", (invite_id,))
+
+
+def list_active_invites_for_project(project_id):
+    """列出项目下未使用且未过期的邀请码，按创建时间倒序。"""
+    from datetime import datetime
+    now_iso = datetime.now().isoformat()
+    with db.get_conn() as conn:
+        rows = conn.execute(
+            """SELECT id, code, expires_at, created_at FROM invite_codes
+               WHERE project_id=? AND used_by_user_id IS NULL AND expires_at >= ?
+               ORDER BY id DESC""",
+            (project_id, now_iso)).fetchall()
+        return [dict(r) for r in rows]
 
 
 # ============ 任务审阅 ============

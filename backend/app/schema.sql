@@ -57,6 +57,7 @@ CREATE TABLE IF NOT EXISTS users (
   password_hash TEXT NOT NULL,
   display_name TEXT NOT NULL,
   token TEXT,
+  token_expires_at TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')));
 
 CREATE TABLE IF NOT EXISTS project_members (
@@ -72,5 +73,7 @@ CREATE TABLE IF NOT EXISTS invite_codes (
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   code TEXT NOT NULL UNIQUE,
   used_by_user_id INTEGER REFERENCES users(id),
+  fail_count INTEGER NOT NULL DEFAULT 0,
+  locked_until TEXT,
   created_at TEXT NOT NULL DEFAULT (datetime('now')),
   expires_at TEXT NOT NULL);
