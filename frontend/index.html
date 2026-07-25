@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreCompass · 校园项目粉碎机</title>
+  <title>CoreCompass · 校园项目进度护栏</title>
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -30,7 +30,7 @@
         </svg>
         <div class="brand-text">
           <strong>CORE<span>COMPASS</span></strong>
-          <em>校园项目粉碎机</em>
+          <em>校园项目进度护栏</em>
         </div>
       </div>
 
@@ -396,15 +396,23 @@
 
                 <ul class="task-list">
                   <template x-for="t in g.tasks" :key="t.id">
-                    <li class="task-item" :class="t.status">
+                    <li class="task-item" :class="t.status" x-data="taskAssign($root, t)">
                       <span class="task-dot" :class="t.priority"></span>
                       <div class="task-body">
                         <span class="task-title" x-text="t.title"></span>
                         <span class="task-tags">
                           <em x-text="statusLabel(t.status)"></em>
                           <em class="pri" x-text="priorityLabel(t.priority)"></em>
+                          <em class="assignee" x-show="t.assignee_id"
+                            x-text="'👤 ' + (members.find(m => m.id === t.assignee_id)?.display_name || '已分配')"></em>
                         </span>
                       </div>
+                      <template x-if="t.status === 'planned' && !t.assignee_id && currentRole !== 'leader'">
+                        <button class="btn-mini btn-accent" @click="claim()">认领</button>
+                      </template>
+                      <template x-if="t.status === 'planned' && !t.assignee_id && currentRole === 'leader'">
+                        <button class="btn-mini" @click="showAssignPicker = true">分配</button>
+                      </template>
                       <template x-if="t.status === 'planned'">
                         <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
                       </template>
@@ -414,6 +422,23 @@
                       <template x-if="t.status === 'planned' && currentRole === 'leader'">
                         <button class="btn-mini btn-danger" @click="askDeleteTask(t)">删除</button>
                       </template>
+                      <div x-show="showAssignPicker" class="assign-popover" @click.self="showAssignPicker = false"
+                        x-cloak>
+                        <div class="assign-pop">
+                          <header class="assign-pop-head">
+                            <span>分配给成员</span>
+                            <button class="assign-pop-close" @click="showAssignPicker = false">×</button>
+                          </header>
+                          <ul class="assign-pop-list">
+                            <template x-for="m in members" :key="m.id">
+                              <li class="assign-pop-item" @click="assignTo(m.id)">
+                                <span x-text="m.display_name"></span>
+                                <em x-text="m.role === 'leader' ? '队长' : '队员'"></em>
+                              </li>
+                            </template>
+                          </ul>
+                        </div>
+                      </div>
                     </li>
                   </template>
                 </ul>

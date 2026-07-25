@@ -1,40 +1,40 @@
-/* CoreCompass · 现代航海指挥台风格
-   配色：深墨蓝底 + 暖象牙文 + 指针橙强调 + 黄铜次强调 + 磷光青活跃
+/* CoreCompass · 晨曦港湾风格
+   配色：暖米白底 + 深咖啡墨文 + 深港青强调 + 暖琥珀次强调 + 深青活跃
    字体：Space Grotesk（标题）/ Inter（正文）/ JetBrains Mono（数据）
    设计：移除层层 max-width 限制，让指挥台信息密度撑满屏幕 */
 
 :root {
-  --ink: #0A1525;
-  /* 深墨蓝 · 主背景（更深，指挥台感） */
-  --ink-2: #0D1A2E;
-  /* 次背景 */
-  --graph: #111E33;
-  /* 图表蓝 · 卡片底 */
-  --graph-2: #182E4A;
-  /* 卡片悬停 */
-  --graph-3: #1F3A5C;
-  /* 边框/分隔 */
-  --parchment: #EAE0CC;
-  /* 暖象牙 · 主文字（稍冷） */
-  --parchment-dim: #A8B0C0;
-  /* 次要文字 */
-  --compass: #FF6B35;
-  /* 指针橙 · 主强调（更亮） */
-  --compass-dim: #C44A1E;
-  --brass: #D4A95C;
-  /* 黄铜 · 图标/次强调 */
-  --signal: #5FE3D5;
-  /* 磷光青 · 活跃状态（新增） */
-  --signal-dim: #2DA89C;
-  --mist: #6B7E94;
-  /* 雾灰 · 弱信息 */
-  --pass: #4ADE80;
-  /* 通过绿 */
-  --fail: #F87171;
-  /* 失败红 */
-  --line: rgba(234, 224, 204, 0.10);
-  --line-strong: rgba(234, 224, 204, 0.22);
-  --line-signal: rgba(95, 227, 213, 0.30);
+  --ink: #F4EFE4;
+  /* 暖米白 · 主背景（晨曦港湾） */
+  --ink-2: #FBF7EE;
+  /* 次背景 · 更亮米白 */
+  --graph: #FFFFFF;
+  /* 纯白 · 卡片底 */
+  --graph-2: #F0E9D8;
+  /* 卡片悬停 · 暖米色 */
+  --graph-3: #E2D9C2;
+  /* 边框/分隔 · 暖米灰 */
+  --parchment: #1E1A14;
+  /* 深咖啡墨 · 主文字 */
+  --parchment-dim: #6B6354;
+  /* 次要文字 · 暖灰 */
+  --compass: #0F6E5C;
+  /* 深港青 · 主强调（替代指针橙） */
+  --compass-dim: #0B5247;
+  --brass: #B8721E;
+  /* 暖琥珀 · 图标/次强调 */
+  --signal: #0E7490;
+  /* 深青 · 活跃状态 */
+  --signal-dim: #155E75;
+  --mist: #9C9588;
+  /* 暖雾灰 · 弱信息 */
+  --pass: #2D7D46;
+  /* 森林绿 · 通过 */
+  --fail: #C44536;
+  /* 砖红 · 失败 */
+  --line: rgba(30, 26, 20, 0.10);
+  --line-strong: rgba(30, 26, 20, 0.18);
+  --line-signal: rgba(14, 116, 144, 0.30);
 
   --font-display: 'Space Grotesk', system-ui, sans-serif;
   --font-body: 'Inter', system-ui, "Microsoft YaHei", sans-serif;
@@ -73,11 +73,11 @@ body::before {
   inset: 0;
   background-image:
     /* 主网格 · 经纬线 */
-    linear-gradient(rgba(95, 227, 213, 0.035) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(95, 227, 213, 0.035) 1px, transparent 1px),
+    linear-gradient(rgba(14, 116, 144, 0.035) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(14, 116, 144, 0.035) 1px, transparent 1px),
     /* 次网格 · 更密 */
-    linear-gradient(rgba(212, 169, 92, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(212, 169, 92, 0.02) 1px, transparent 1px);
+    linear-gradient(rgba(184, 114, 30, 0.02) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(184, 114, 30, 0.02) 1px, transparent 1px);
   background-size: 96px 96px, 96px 96px, 24px 24px, 24px 24px;
   pointer-events: none;
   z-index: 0;
@@ -88,9 +88,9 @@ body::after {
   position: fixed;
   inset: 0;
   background:
-    radial-gradient(ellipse 1000px 700px at 95% 0%, rgba(255, 107, 53, 0.07), transparent 55%),
-    radial-gradient(ellipse 700px 900px at 0% 100%, rgba(95, 227, 213, 0.05), transparent 60%),
-    radial-gradient(ellipse 500px 500px at 50% 50%, rgba(212, 169, 92, 0.03), transparent 70%);
+    radial-gradient(ellipse 1000px 700px at 95% 0%, rgba(15, 110, 92, 0.07), transparent 55%),
+    radial-gradient(ellipse 700px 900px at 0% 100%, rgba(14, 116, 144, 0.05), transparent 60%),
+    radial-gradient(ellipse 500px 500px at 50% 50%, rgba(184, 114, 30, 0.03), transparent 70%);
   pointer-events: none;
   z-index: 0;
 }
@@ -131,7 +131,7 @@ body::after {
 
 /* ============ 左侧罗盘导航栏 ============ */
 .compass-rail {
-  background: linear-gradient(180deg, #060F1D 0%, #0A1525 100%);
+  background: linear-gradient(180deg, #FBF7EE 0%, #F4EFE4 100%);
   border-right: 1px solid var(--line);
   padding: 26px 22px;
   display: flex;
@@ -154,12 +154,12 @@ body::after {
   background-image: linear-gradient(180deg,
       transparent 0,
       transparent 19px,
-      rgba(212, 169, 92, 0.22) 19px,
-      rgba(212, 169, 92, 0.22) 20px,
+      rgba(184, 114, 30, 0.22) 19px,
+      rgba(184, 114, 30, 0.22) 20px,
       transparent 20px,
       transparent 79px,
-      rgba(212, 169, 92, 0.10) 79px,
-      rgba(212, 169, 92, 0.10) 80px);
+      rgba(184, 114, 30, 0.10) 79px,
+      rgba(184, 114, 30, 0.10) 80px);
   background-size: 22px 80px;
   pointer-events: none;
 }
@@ -200,7 +200,7 @@ body::after {
   height: 42px;
   color: var(--brass);
   flex-shrink: 0;
-  filter: drop-shadow(0 0 6px rgba(212, 169, 92, 0.3));
+  filter: drop-shadow(0 0 6px rgba(184, 114, 30, 0.3));
 }
 
 .brand-text strong {
@@ -290,7 +290,7 @@ body::after {
 
 .needle-north {
   fill: var(--compass);
-  filter: drop-shadow(0 0 6px rgba(255, 107, 53, 0.6));
+  filter: drop-shadow(0 0 6px rgba(15, 110, 92, 0.6));
 }
 
 .needle-south {
@@ -374,7 +374,7 @@ body::after {
 }
 
 .rail-nav button:hover {
-  background: rgba(95, 227, 213, 0.06);
+  background: rgba(14, 116, 144, 0.06);
   color: var(--parchment);
   border-left-color: var(--signal);
 }
@@ -444,7 +444,7 @@ button:disabled {
   position: relative;
   overflow: hidden;
   transition: background 0.15s, transform 0.1s, box-shadow 0.2s;
-  box-shadow: 0 4px 14px -4px rgba(255, 107, 53, 0.5);
+  box-shadow: 0 4px 14px -4px rgba(15, 110, 92, 0.5);
 }
 
 .btn-primary::before {
@@ -463,8 +463,8 @@ button:disabled {
 }
 
 .btn-primary:hover:not(:disabled) {
-  background: #FF8559;
-  box-shadow: 0 6px 20px -4px rgba(255, 107, 53, 0.6);
+  background: #17856F;
+  box-shadow: 0 6px 20px -4px rgba(15, 110, 92, 0.6);
 }
 
 .btn-primary:active:not(:disabled) {
@@ -477,11 +477,11 @@ button:disabled {
   font-weight: 600;
   font-size: 13px;
   padding: 9px 18px;
-  box-shadow: 0 2px 10px -2px rgba(255, 107, 53, 0.4);
+  box-shadow: 0 2px 10px -2px rgba(15, 110, 92, 0.4);
 }
 
 .btn-accent:hover:not(:disabled) {
-  background: #FF8559;
+  background: #17856F;
 }
 
 .btn-ghost {
@@ -495,11 +495,11 @@ button:disabled {
 .btn-ghost:hover:not(:disabled) {
   border-color: var(--signal);
   color: var(--signal);
-  background: rgba(95, 227, 213, 0.05);
+  background: rgba(14, 116, 144, 0.05);
 }
 
 .btn-mini {
-  background: rgba(234, 224, 204, 0.06);
+  background: rgba(30, 26, 20, 0.06);
   color: var(--parchment);
   border: 1px solid var(--line-strong);
   font-size: 11px;
@@ -507,18 +507,18 @@ button:disabled {
 }
 
 .btn-mini:hover:not(:disabled) {
-  background: rgba(255, 107, 53, 0.15);
+  background: rgba(15, 110, 92, 0.15);
   border-color: var(--compass);
   color: var(--compass);
 }
 
 .btn-mini.btn-danger {
   color: #e57373;
-  border-color: rgba(229, 115, 115, 0.4);
+  border-color: rgba(196, 69, 54, 0.4);
 }
 
 .btn-mini.btn-danger:hover:not(:disabled) {
-  background: rgba(229, 115, 115, 0.15);
+  background: rgba(196, 69, 54, 0.15);
   border-color: #e57373;
   color: #ef5350;
 }
@@ -537,17 +537,17 @@ button:disabled {
 .btn-danger {
   background: transparent;
   color: #ef5350;
-  border: 1px solid rgba(239, 83, 80, 0.5);
+  border: 1px solid rgba(196, 69, 54, 0.5);
   font-weight: 600;
   font-size: 13px;
   padding: 8px 17px;
 }
 
 .btn-danger:hover:not(:disabled) {
-  background: rgba(239, 83, 80, 0.15);
+  background: rgba(196, 69, 54, 0.15);
   border-color: #ef5350;
-  color: #ffcdd2;
-  box-shadow: 0 2px 12px -2px rgba(239, 83, 80, 0.4);
+  color: #7F1D1D;
+  box-shadow: 0 2px 12px -2px rgba(196, 69, 54, 0.4);
 }
 
 /* 弹窗内的实心危险确认按钮 */
@@ -564,7 +564,7 @@ button:disabled {
 
 .modal-danger {
   border-top: 2px solid #ef5350;
-  box-shadow: 0 -8px 30px -8px rgba(239, 83, 80, 0.3), 0 20px 60px -20px rgba(0, 0, 0, 0.6);
+  box-shadow: 0 -8px 30px -8px rgba(196, 69, 54, 0.3), 0 20px 60px -20px rgba(0, 0, 0, 0.6);
 }
 
 .modal-danger::before {
@@ -572,7 +572,7 @@ button:disabled {
 }
 
 .danger-warn {
-  color: #ffcdd2;
+  color: #7F1D1D;
   line-height: 1.7;
 }
 
@@ -594,7 +594,7 @@ button:disabled {
 
 .modal-input {
   width: 100%;
-  background: rgba(234, 224, 204, 0.06);
+  background: rgba(30, 26, 20, 0.06);
   border: 1px solid var(--line-strong);
   color: var(--parchment);
   font-size: 14px;
@@ -641,10 +641,10 @@ button:disabled {
   width: 320px;
   height: 320px;
   border-radius: 50%;
-  border: 1px solid rgba(95, 227, 213, 0.15);
+  border: 1px solid rgba(14, 116, 144, 0.15);
   background:
-    radial-gradient(circle, transparent 58%, rgba(255, 107, 53, 0.06) 60%, transparent 62%),
-    radial-gradient(circle, transparent 38%, rgba(212, 169, 92, 0.10) 40%, transparent 42%);
+    radial-gradient(circle, transparent 58%, rgba(15, 110, 92, 0.06) 60%, transparent 62%),
+    radial-gradient(circle, transparent 38%, rgba(184, 114, 30, 0.10) 40%, transparent 42%);
   pointer-events: none;
   animation: dial-rotate 60s linear infinite;
 }
@@ -657,7 +657,7 @@ button:disabled {
   width: 80px;
   height: 80px;
   border-radius: 50%;
-  border: 1px dashed rgba(95, 227, 213, 0.22);
+  border: 1px dashed rgba(14, 116, 144, 0.22);
   pointer-events: none;
 }
 
@@ -809,7 +809,7 @@ input:focus,
 textarea:focus {
   outline: none;
   border-color: var(--signal);
-  box-shadow: 0 0 0 3px rgba(95, 227, 213, 0.14);
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.14);
 }
 
 textarea {
@@ -836,14 +836,14 @@ textarea::placeholder {
   border-left: 2px solid var(--compass);
   padding: 16px 20px;
   position: relative;
-  background: linear-gradient(90deg, rgba(255, 107, 53, 0.04), transparent 60%);
+  background: linear-gradient(90deg, rgba(15, 110, 92, 0.04), transparent 60%);
   border-radius: 0 var(--radius) var(--radius) 0;
   transition: transform 0.2s, background 0.2s;
 }
 
 .trio-item:hover {
   transform: translateX(4px);
-  background: linear-gradient(90deg, rgba(255, 107, 53, 0.08), transparent 60%);
+  background: linear-gradient(90deg, rgba(15, 110, 92, 0.08), transparent 60%);
 }
 
 .trio-num {
@@ -992,17 +992,17 @@ textarea::placeholder {
   background: var(--compass);
   border-radius: 2px;
   transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 0 6px rgba(255, 107, 53, 0.5);
+  box-shadow: 0 0 6px rgba(15, 110, 92, 0.5);
 }
 
 .stat-bar-fill.signal {
   background: var(--signal);
-  box-shadow: 0 0 6px rgba(95, 227, 213, 0.5);
+  box-shadow: 0 0 6px rgba(14, 116, 144, 0.5);
 }
 
 .stat-bar-fill.brass {
   background: var(--brass);
-  box-shadow: 0 0 6px rgba(212, 169, 92, 0.4);
+  box-shadow: 0 0 6px rgba(184, 114, 30, 0.4);
 }
 
 .header-actions {
@@ -1018,7 +1018,7 @@ textarea::placeholder {
   gap: 10px;
   flex-wrap: wrap;
   padding: 12px 16px;
-  background: rgba(212, 169, 92, 0.06);
+  background: rgba(184, 114, 30, 0.06);
   border-left: 3px solid var(--brass);
   border-radius: var(--radius);
 }
@@ -1080,7 +1080,7 @@ textarea::placeholder {
   width: 60px;
   height: 60px;
   background:
-    radial-gradient(circle at top right, rgba(95, 227, 213, 0.08), transparent 60%);
+    radial-gradient(circle at top right, rgba(14, 116, 144, 0.08), transparent 60%);
   pointer-events: none;
 }
 
@@ -1088,7 +1088,7 @@ textarea::placeholder {
   transform: translateY(-3px);
   border-color: var(--line-strong);
   box-shadow: 0 14px 36px -12px rgba(0, 0, 0, 0.7),
-    0 0 0 1px rgba(95, 227, 213, 0.15);
+    0 0 0 1px rgba(14, 116, 144, 0.15);
 }
 
 .milestone-card.ms-done::before {
@@ -1102,13 +1102,13 @@ textarea::placeholder {
 }
 
 .milestone-card.ms-done {
-  border-color: rgba(74, 222, 128, 0.35);
-  background: linear-gradient(180deg, rgba(74, 222, 128, 0.05), var(--graph));
+  border-color: rgba(45, 125, 70, 0.35);
+  background: linear-gradient(180deg, rgba(45, 125, 70, 0.05), var(--graph));
 }
 
 .milestone-card.ms-locked {
-  border-color: rgba(248, 113, 113, 0.4);
-  background: linear-gradient(180deg, rgba(248, 113, 113, 0.06), var(--graph));
+  border-color: rgba(196, 69, 54, 0.4);
+  background: linear-gradient(180deg, rgba(196, 69, 54, 0.06), var(--graph));
 }
 
 .ms-head {
@@ -1149,18 +1149,18 @@ textarea::placeholder {
   font-family: var(--font-mono);
   padding: 3px 8px;
   border-radius: 20px;
-  background: rgba(234, 224, 204, 0.06);
+  background: rgba(30, 26, 20, 0.06);
   color: var(--parchment-dim);
   white-space: nowrap;
 }
 
 .ms-done .ms-status {
-  background: rgba(74, 222, 128, 0.15);
+  background: rgba(45, 125, 70, 0.15);
   color: var(--pass);
 }
 
 .ms-locked .ms-status {
-  background: rgba(248, 113, 113, 0.15);
+  background: rgba(196, 69, 54, 0.15);
   color: var(--fail);
 }
 
@@ -1175,29 +1175,30 @@ textarea::placeholder {
 }
 
 .task-item {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 10px;
   padding: 9px 12px;
-  background: rgba(10, 21, 37, 0.5);
+  background: rgba(30, 26, 20, 0.04);
   border-radius: var(--radius);
   border-left: 2px solid transparent;
   transition: background 0.15s, transform 0.15s, border-color 0.15s;
 }
 
 .task-item:hover {
-  background: rgba(10, 21, 37, 0.9);
+  background: rgba(30, 26, 20, 0.07);
   transform: translateX(2px);
 }
 
 .task-item.doing {
   border-left-color: var(--signal);
-  background: linear-gradient(90deg, rgba(95, 227, 213, 0.08), rgba(10, 21, 37, 0.5) 40%);
+  background: linear-gradient(90deg, rgba(14, 116, 144, 0.08), rgba(30, 26, 20, 0.04) 40%);
 }
 
 .task-item.overdue {
   border-left-color: var(--fail);
-  background: linear-gradient(90deg, rgba(248, 113, 113, 0.08), rgba(10, 21, 37, 0.5) 40%);
+  background: linear-gradient(90deg, rgba(196, 69, 54, 0.08), rgba(30, 26, 20, 0.04) 40%);
 }
 
 .task-item.done {
@@ -1223,7 +1224,7 @@ textarea::placeholder {
 
 .task-dot.core {
   background: var(--compass);
-  box-shadow: 0 0 6px rgba(255, 107, 53, 0.5);
+  box-shadow: 0 0 6px rgba(15, 110, 92, 0.5);
 }
 
 .task-dot.optional {
@@ -1258,6 +1259,92 @@ textarea::placeholder {
 }
 
 .task-tags em.pri {
+  color: var(--brass);
+}
+
+/* 负责人标签 */
+.task-tags em.assignee {
+  color: var(--signal);
+}
+
+/* ============ 任务分配/认领浮层 ============ */
+.assign-popover {
+  position: absolute;
+  top: calc(100% + 6px);
+  right: 0;
+  z-index: 50;
+  min-width: 200px;
+}
+
+.assign-pop {
+  background: var(--graph);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-lg);
+  box-shadow: 0 8px 28px -8px rgba(0, 0, 0, 0.6);
+  overflow: hidden;
+}
+
+.assign-pop-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-bottom: 1px solid var(--line);
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  color: var(--parchment-dim);
+  text-transform: uppercase;
+}
+
+.assign-pop-close {
+  background: none;
+  border: none;
+  color: var(--mist);
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 2px;
+}
+
+.assign-pop-close:hover {
+  color: var(--compass);
+}
+
+.assign-pop-list {
+  list-style: none;
+  margin: 0;
+  padding: 4px;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.assign-pop-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--parchment);
+  transition: background 0.12s;
+}
+
+.assign-pop-item:hover {
+  background: rgba(15, 110, 92, 0.12);
+  color: var(--compass);
+}
+
+.assign-pop-item em {
+  font-style: normal;
+  font-size: 10px;
+  font-family: var(--font-mono);
+  color: var(--mist);
+  letter-spacing: 0.03em;
+}
+
+.assign-pop-item:hover em {
   color: var(--brass);
 }
 
@@ -1312,13 +1399,13 @@ textarea::placeholder {
 }
 
 .upload-result.pass {
-  background: rgba(74, 222, 128, 0.1);
+  background: rgba(45, 125, 70, 0.1);
   color: var(--pass);
   border-left: 2px solid var(--pass);
 }
 
 .upload-result.fail {
-  background: rgba(248, 113, 113, 0.1);
+  background: rgba(196, 69, 54, 0.1);
   color: var(--fail);
   border-left: 2px solid var(--fail);
 }
@@ -1409,7 +1496,7 @@ textarea::placeholder {
 }
 
 .scheduler-status .ss-state {
-  color: var(--pass, #6ad7a5);
+  color: var(--pass, #2D7D46);
   font-weight: 600;
 }
 
@@ -1432,8 +1519,8 @@ textarea::placeholder {
 .scan-result {
   padding: 10px 14px;
   margin-bottom: 14px;
-  background: rgba(106, 215, 165, 0.08);
-  border: 1px solid var(--pass, #6ad7a5);
+  background: rgba(45, 125, 70, 0.08);
+  border: 1px solid var(--pass, #2D7D46);
   border-radius: var(--radius);
   font-size: 13px;
   color: var(--parchment);
@@ -1505,7 +1592,7 @@ textarea::placeholder {
   font-size: 10px;
   padding: 2px 7px;
   border-radius: 20px;
-  background: rgba(234, 224, 204, 0.06);
+  background: rgba(30, 26, 20, 0.06);
   color: var(--parchment-dim);
   justify-self: start;
 }
@@ -1531,7 +1618,7 @@ textarea::placeholder {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(6, 15, 29, 0.82);
+  background: rgba(20, 18, 14, 0.55);
   backdrop-filter: blur(6px);
   display: flex;
   align-items: center;
@@ -1791,8 +1878,8 @@ textarea::placeholder {
 }
 
 .rv-approved {
-  color: #6abf69;
-  border: 1px solid #6abf69;
+  color: #2D7D46;
+  border: 1px solid #2D7D46;
 }
 
 .rv-rejected {
@@ -1894,8 +1981,8 @@ textarea::placeholder {
 }
 
 .btn-approve {
-  border: 1px solid #6abf69;
-  color: #6abf69;
+  border: 1px solid #2D7D46;
+  color: #2D7D46;
   background: transparent;
   padding: 2px 10px;
   border-radius: 3px;
@@ -1971,7 +2058,7 @@ textarea::placeholder {
 
 .mc-bar {
   height: 6px;
-  background: rgba(201, 169, 97, 0.1);
+  background: rgba(184, 114, 30, 0.1);
   border-radius: 3px;
   overflow: hidden;
 }
@@ -2074,8 +2161,8 @@ textarea::placeholder {
 }
 
 .invite-highlight {
-  border-color: var(--compass, #e8743c);
-  background: linear-gradient(135deg, rgba(232, 116, 60, 0.06), rgba(201, 169, 97, 0.04));
+  border-color: var(--compass, #0F6E5C);
+  background: linear-gradient(135deg, rgba(15, 110, 92, 0.06), rgba(184, 114, 30, 0.04));
   animation: inviteGlow 2s ease-in-out 2;
 }
 
@@ -2083,11 +2170,11 @@ textarea::placeholder {
 
   0%,
   100% {
-    box-shadow: 0 0 0 0 rgba(232, 116, 60, 0);
+    box-shadow: 0 0 0 0 rgba(15, 110, 92, 0);
   }
 
   50% {
-    box-shadow: 0 0 18px 2px rgba(232, 116, 60, 0.25);
+    box-shadow: 0 0 18px 2px rgba(15, 110, 92, 0.25);
   }
 }
 
@@ -2101,7 +2188,7 @@ textarea::placeholder {
   align-items: center;
   gap: 12px;
   padding: 6px 0;
-  border-bottom: 1px dashed rgba(201, 169, 97, 0.15);
+  border-bottom: 1px dashed rgba(184, 114, 30, 0.15);
 }
 
 .iv-row:last-child {
@@ -2113,7 +2200,7 @@ textarea::placeholder {
   font-size: 22px;
   letter-spacing: 0.3em;
   color: var(--brass);
-  background: rgba(201, 169, 97, 0.08);
+  background: rgba(184, 114, 30, 0.08);
   padding: 6px 16px;
   border-radius: 4px;
 }
@@ -2206,7 +2293,7 @@ textarea::placeholder {
 }
 
 .downgrade-chip {
-  background: rgba(255, 107, 53, 0.12);
+  background: rgba(15, 110, 92, 0.12);
   color: var(--compass);
   font-family: var(--font-mono);
   font-size: 11px;
