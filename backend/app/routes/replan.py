@@ -21,7 +21,7 @@ def _token(authorization: str | None):
 @router.post("/api/replan/{pid}/propose")
 def propose(pid: int, authorization: str | None = Header(None)):
     user = deps.get_current_user(_token(authorization))
-    deps.require_member(pid, user)
+    deps.require_leader(pid, user)
     project = models.get_project(pid)
     if not project:
         raise HTTPException(404, "项目不存在")
@@ -33,7 +33,7 @@ def propose(pid: int, authorization: str | None = Header(None)):
 @router.post("/api/replan/{pid}/apply")
 def apply(pid: int, req: ReplanApply, authorization: str | None = Header(None)):
     user = deps.get_current_user(_token(authorization))
-    deps.require_member(pid, user)
+    deps.require_leader(pid, user)
     project = models.get_project(pid)
     if not project:
         raise HTTPException(404, "项目不存在")
@@ -46,7 +46,7 @@ def apply(pid: int, req: ReplanApply, authorization: str | None = Header(None)):
 def trigger_overdue(pid: int, authorization: str | None = Header(None)):
     """手动将 doing 任务标记为 overdue（Demo 模拟偏航用）。"""
     user = deps.get_current_user(_token(authorization))
-    deps.require_member(pid, user)
+    deps.require_leader(pid, user)
     with get_conn() as conn:
         cur = conn.execute(
             "UPDATE tasks SET status='overdue' WHERE project_id=? AND status='doing'",

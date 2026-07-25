@@ -11,6 +11,8 @@ function taskAssign(parent, task) {
         body: JSON.stringify({ assignee_id: userId })
       });
       if (!r.ok) { alert((await r.json()).detail || '分配失败'); return; }
+      const member = parent.members.find(m => m.id === userId);
+      alert(`已将任务「${task.title}」分配给 ${member ? member.display_name : '该成员'}`);
       this.showAssignPicker = false;
       await parent.loadProject(parent.project.id);
     },

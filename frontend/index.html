@@ -360,8 +360,8 @@
             </div>
             <div class="header-actions">
               <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
-              <button class="btn-ghost" @click="triggerOverdue()">模拟偏航</button>
-              <button class="btn-accent" @click="proposeReplan()">触发重规划</button>
+              <button class="btn-ghost" @click="triggerOverdue()" x-show="currentRole === 'leader'">模拟偏航</button>
+              <button class="btn-accent" @click="proposeReplan()" x-show="currentRole === 'leader'">触发重规划</button>
               <button class="btn-ghost" @click="openNotifyConfig()" x-show="currentRole === 'leader'">通知设置</button>
               <button class="btn-danger" @click="openDeleteProject()" x-show="currentRole === 'leader'">删除项目</button>
             </div>
