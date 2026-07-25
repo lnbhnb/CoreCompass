@@ -24,6 +24,13 @@ function taskBoard(parent) {
         'ms-locked': m.status === 'locked'
       };
     },
-    updateStatus(taskId, event) { parent.updateTaskStatus(taskId, event); }
+    updateStatus(taskId, event) { parent.updateTaskStatus(taskId, event); },
+    // —— 透传给 task-assign 子组件使用（$root 指向本组件，需代理到 app 根）——
+    openAssign(task) { parent.openAssign(task); },
+    authHeaders() { return parent.authHeaders(); },
+    loadProject(pid) { return parent.loadProject(pid); },
+    get members() { return parent.members; },
+    get project() { return parent.project; },
+    get currentRole() { return parent.currentRole; }
   }
 }
