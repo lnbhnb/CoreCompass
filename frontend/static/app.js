@@ -148,6 +148,45 @@ function app() {
       await this.loadProject(this.project.id);
     },
 
+    // —— 任务分配（全局模态框，避免嵌套作用域 + 层级问题）——
+    assignTarget: null,
+    assignOpen: false,
+    assignLoading: false,
+
+    openAssign(task) {
+      this.assignTarget = task;
+      this.assignOpen = true;
+    },
+
+    closeAssign() {
+      this.assignOpen = false;
+      this.assignTarget = null;
+    },
+
+    get assignableMembers() {
+      return (this.members || []).filter(m => m.role === 'member');
+    },
+
+    async doAssign(userId) {
+      if (!this.assignTarget) return;
+      this.assignLoading = true;
+      try {
+        const r = await fetch(`/api/tasks/${this.assignTarget.id}/assign`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
+          body: JSON.stringify({ assignee_id: userId })
+        });
+        if (!r.ok) { alert((await r.json()).detail || '分配失败'); return; }
+        const member = this.members.find(m => m.id === userId);
+        alert(`已将任务「${this.assignTarget.title}」分配给 ${member ? member.display_name : '该成员'}`);
+        this.assignOpen = false;
+        this.assignTarget = null;
+        await this.loadProject(this.project.id);
+      } finally {
+        this.assignLoading = false;
+      }
+    },
+
     // —— 队长手动增删任务节点 ——
     addTaskOpen: false,
     addTaskMilestoneId: null,

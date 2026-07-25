@@ -411,7 +411,7 @@
                         <button class="btn-mini btn-accent" @click="claim()">认领</button>
                       </template>
                       <template x-if="t.status === 'planned' && !t.assignee_id && currentRole === 'leader'">
-                        <button class="btn-mini" @click="showAssignPicker = true">分配</button>
+                        <button class="btn-mini" @click="$root.openAssign(t)">分配</button>
                       </template>
                       <template x-if="t.status === 'planned'">
                         <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
@@ -422,28 +422,6 @@
                       <template x-if="t.status === 'planned' && currentRole === 'leader'">
                         <button class="btn-mini btn-danger" @click="askDeleteTask(t)">删除</button>
                       </template>
-                      <div x-show="showAssignPicker" class="assign-popover" @click.self="showAssignPicker = false"
-                        x-cloak>
-                        <div class="assign-pop">
-                          <header class="assign-pop-head">
-                            <span>分配给成员</span>
-                            <button class="assign-pop-close" @click="showAssignPicker = false">×</button>
-                          </header>
-                          <ul class="assign-pop-list">
-                            <template x-if="!members.filter(m => m.role === 'member').length">
-                              <li class="assign-pop-empty"
-                                style="padding: 14px; color: var(--mist); font-size: 12px; text-align: center;">暂无可分配的队员
-                              </li>
-                            </template>
-                            <template x-for="m in members.filter(m => m.role === 'member')" :key="m.id">
-                              <li class="assign-pop-item" @click="assignTo(m.id)">
-                                <span x-text="m.display_name"></span>
-                                <em x-text="m.role === 'leader' ? '队长' : '队员'"></em>
-                              </li>
-                            </template>
-                          </ul>
-                        </div>
-                      </div>
                     </li>
                   </template>
                 </ul>
@@ -645,6 +623,36 @@
                 <span x-text="deleteProjectLoading ? '删除中…' : '确认删除'"></span>
               </button>
               <button class="btn-ghost" @click="deleteProjectOpen=false" :disabled="deleteProjectLoading">取消</button>
+            </footer>
+          </div>
+        </div>
+      </div>
+
+      <!-- 任务分配模态框（全局，避免嵌套作用域问题） -->
+      <div x-show="assignOpen" class="modal-overlay" @click.self="closeAssign()" x-cloak>
+        <div class="modal">
+          <header class="modal-head">
+            <span class="eyebrow">任务分配</span>
+            <h3 x-text="assignTarget ? `「${assignTarget.title}」` : ''"></h3>
+          </header>
+          <div class="modal-body">
+            <template x-if="!assignableMembers.length">
+              <p class="rationale" style="text-align:center; padding: 14px 0;">
+                暂无可分配的队员。请先在「成员进度」页面生成邀请码，邀请队员加入项目。
+              </p>
+            </template>
+            <template x-if="assignableMembers.length">
+              <ul class="assign-pop-list">
+                <template x-for="m in assignableMembers" :key="m.id">
+                  <li class="assign-pop-item" @click="doAssign(m.id)" :class="{ 'is-loading': assignLoading }">
+                    <span x-text="m.display_name"></span>
+                    <em>队员</em>
+                  </li>
+                </template>
+              </ul>
+            </template>
+            <footer class="modal-actions">
+              <button class="btn-ghost" @click="closeAssign()" :disabled="assignLoading">取消</button>
             </footer>
           </div>
         </div>
