@@ -430,6 +430,11 @@
                             <button class="assign-pop-close" @click="showAssignPicker = false">×</button>
                           </header>
                           <ul class="assign-pop-list">
+                            <template x-if="!members.filter(m => m.role === 'member').length">
+                              <li class="assign-pop-empty"
+                                style="padding: 14px; color: var(--mist); font-size: 12px; text-align: center;">暂无可分配的队员
+                              </li>
+                            </template>
                             <template x-for="m in members.filter(m => m.role === 'member')" :key="m.id">
                               <li class="assign-pop-item" @click="assignTo(m.id)">
                                 <span x-text="m.display_name"></span>

@@ -4,7 +4,7 @@ function app() {
     currentUser: null,
     token: localStorage.getItem('cc_token') || null,
     project: null, milestones: [], tasks: [], notifications: [],
-    usedReferences: null, currentRole: null,
+    usedReferences: null, currentRole: null, members: [],
 
     init() {
       if (this.token) {

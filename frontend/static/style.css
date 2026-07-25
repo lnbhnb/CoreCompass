@@ -1269,11 +1269,13 @@ textarea::placeholder {
 
 /* ============ 任务分配/认领浮层 ============ */
 .assign-popover {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 50;
-  min-width: 200px;
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  background: rgba(0, 0, 0, 0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .assign-pop {
@@ -1282,6 +1284,11 @@ textarea::placeholder {
   border-radius: var(--radius-lg);
   box-shadow: 0 8px 28px -8px rgba(0, 0, 0, 0.6);
   overflow: hidden;
+  min-width: 260px;
+  max-width: 90vw;
+  max-height: 80vh;
+  display: flex;
+  flex-direction: column;
 }
 
 .assign-pop-head {
