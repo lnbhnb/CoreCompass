@@ -430,7 +430,7 @@
                             <button class="assign-pop-close" @click="showAssignPicker = false">×</button>
                           </header>
                           <ul class="assign-pop-list">
-                            <template x-for="m in members" :key="m.id">
+                            <template x-for="m in members.filter(m => m.role === 'member')" :key="m.id">
                               <li class="assign-pop-item" @click="assignTo(m.id)">
                                 <span x-text="m.display_name"></span>
                                 <em x-text="m.role === 'leader' ? '队长' : '队员'"></em>

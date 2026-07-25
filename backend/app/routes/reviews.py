@@ -37,7 +37,10 @@ def assign(task_id: int, req: AssignReq, authorization: str | None = Header(None
     user = deps.get_current_user(token)
     task = _get_task_or_404(task_id)
     deps.require_leader(task["project_id"], user)
-    review_service.assign_task(task_id, req.assignee_id, token, task["project_id"])
+    try:
+        review_service.assign_task(task_id, req.assignee_id, token, task["project_id"])
+    except PermissionError as e:
+        raise HTTPException(400, str(e))
     return {"ok": True}
 
 

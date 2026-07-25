@@ -26,6 +26,11 @@ def _require_member(project_id, user):
 def assign_task(task_id, assignee_id, leader_token, project_id):
     leader = _user_from_token(leader_token)
     _require_leader(project_id, leader)
+    assignee_member = models.get_project_member(project_id, assignee_id)
+    if not assignee_member:
+        raise PermissionError("被分配人不是项目成员")
+    if assignee_member["role"] == "leader":
+        raise PermissionError("队长负责审阅，不能被分配任务")
     models.assign_task(task_id, assignee_id)
 
 

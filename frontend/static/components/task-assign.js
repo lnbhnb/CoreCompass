@@ -10,7 +10,7 @@ function taskAssign(parent, task) {
         headers: { 'Content-Type': 'application/json', ...parent.authHeaders() },
         body: JSON.stringify({ assignee_id: userId })
       });
-      if (!r.ok) { alert('分配失败'); return; }
+      if (!r.ok) { alert((await r.json()).detail || '分配失败'); return; }
       this.showAssignPicker = false;
       await parent.loadProject(parent.project.id);
     },
