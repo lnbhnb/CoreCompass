@@ -408,10 +408,13 @@
                         </span>
                       </div>
                       <template x-if="t.status === 'planned' && !t.assignee_id && currentRole !== 'leader'">
-                        <button class="btn-mini btn-accent" @click="claim()">认领</button>
+                        <button class="btn-mini btn-accent" @click="claimTask(t)">认领</button>
                       </template>
                       <template x-if="t.status === 'planned' && !t.assignee_id && currentRole === 'leader'">
                         <button class="btn-mini" @click="openAssign(t)">分配</button>
+                      </template>
+                      <template x-if="t.status === 'planned' && t.assignee_id === currentUser?.id">
+                        <button class="btn-mini btn-ghost" @click="unclaimTask(t)">取消认领</button>
                       </template>
                       <template x-if="t.status === 'planned'">
                         <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>

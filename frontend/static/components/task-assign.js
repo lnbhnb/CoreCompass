@@ -3,15 +3,6 @@ function taskAssign(parent, task) {
     reviewComment: '',
     submitting: false,
 
-    async claim() {
-      const r = await fetch(`/api/tasks/${task.id}/claim`, {
-        method: 'POST',
-        headers: parent.authHeaders()
-      });
-      if (!r.ok) { alert((await r.json()).detail || '认领失败'); return; }
-      await parent.loadProject(parent.project.id);
-    },
-
     async submitFile(fileInput) {
       const file = fileInput.files[0];
       if (!file) return;

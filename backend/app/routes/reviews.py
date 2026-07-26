@@ -57,6 +57,21 @@ def claim(task_id: int, authorization: str | None = Header(None)):
     return {"ok": True}
 
 
+@router.post("/api/tasks/{task_id}/unclaim")
+def unclaim(task_id: int, authorization: str | None = Header(None)):
+    token = _token(authorization)
+    user = deps.get_current_user(token)
+    task = _get_task_or_404(task_id)
+    deps.require_member(task["project_id"], user)
+    try:
+        review_service.unclaim_task(task_id, token, task["project_id"])
+    except PermissionError as e:
+        raise HTTPException(403, str(e))
+    except ValueError as e:
+        raise HTTPException(400, str(e))
+    return {"ok": True}
+
+
 @router.post("/api/tasks/{task_id}/submit")
 async def submit(task_id: int, file: UploadFile = File(...), authorization: str | None = Header(None)):
     token = _token(authorization)

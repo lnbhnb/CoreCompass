@@ -45,6 +45,26 @@ def claim_task(task_id, member_token, project_id):
     models.assign_task(task_id, member["id"])
 
 
+def unclaim_task(task_id, member_token, project_id):
+    """取消认领。仅允许 assignee 本人或队长操作，且仅限 planned 状态的任务。"""
+    user = _user_from_token(member_token)
+    member = models.get_project_member(project_id, user["id"])
+    if not member:
+        raise PermissionError("非项目成员")
+    task = models.get_task(task_id)
+    if not task:
+        raise ValueError("任务不存在")
+    if task["status"] != "planned":
+        raise PermissionError("仅未开始的任务可取消认领")
+    if task["assignee_id"] is None:
+        raise PermissionError("任务未被认领")
+    is_assignee = task["assignee_id"] == user["id"]
+    is_leader = member["role"] == "leader"
+    if not is_assignee and not is_leader:
+        raise PermissionError("仅任务负责人或队长可取消认领")
+    models.unassign_task(task_id)
+
+
 def submit_task(task_id, filename, filepath, member_token, project_id):
     member = _user_from_token(member_token)
     _require_member(project_id, member)

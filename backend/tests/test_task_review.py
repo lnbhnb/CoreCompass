@@ -44,6 +44,36 @@ def test_claim_already_assigned_raises():
         review_service.claim_task(tid, other["token"], pid)
 
 
+def test_assignee_can_unclaim():
+    """认领人可以取消认领，任务回到未分配态。"""
+    pid, mid, tid, leader, member = _setup_project_with_leader_and_member("u1")
+    review_service.claim_task(tid, member["token"], pid)
+    assert models.get_task(tid)["assignee_id"] == member["user"]["id"]
+    review_service.unclaim_task(tid, member["token"], pid)
+    task = models.get_task(tid)
+    assert task["assignee_id"] is None
+    assert task["submission_filename"] is None
+    assert task["review_status"] is None
+
+
+def test_leader_can_unclaim_member_task():
+    """队长可以强制取消队员的认领。"""
+    pid, mid, tid, leader, member = _setup_project_with_leader_and_member("u2")
+    review_service.claim_task(tid, member["token"], pid)
+    review_service.unclaim_task(tid, leader["token"], pid)
+    assert models.get_task(tid)["assignee_id"] is None
+
+
+def test_other_member_cannot_unclaim():
+    """非认领人非队长不能取消认领。"""
+    pid, mid, tid, leader, member = _setup_project_with_leader_and_member("u3")
+    review_service.claim_task(tid, member["token"], pid)
+    other = auth_service.register("u3_other", "pw", "其他人")
+    models.add_project_member(pid, other["user"]["id"], "member")
+    with pytest.raises(PermissionError, match="负责人或队长"):
+        review_service.unclaim_task(tid, other["token"], pid)
+
+
 def test_member_submits_and_leader_approves(tmp_path):
     pid, mid, tid, leader, member = _setup_project_with_leader_and_member("d")
     review_service.assign_task(tid, member["user"]["id"], leader["token"], pid)

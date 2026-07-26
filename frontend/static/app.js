@@ -187,6 +187,30 @@ function app() {
       }
     },
 
+    // —— 队员认领 + 取消认领（提到根，避免嵌套作用域问题）——
+    async claimTask(task) {
+      try {
+        const r = await fetch(`/api/tasks/${task.id}/claim`, {
+          method: 'POST', headers: this.authHeaders()
+        });
+        if (!r.ok) { alert((await r.json()).detail || '认领失败'); return; }
+        alert(`已认领任务「${task.title}」`);
+        await this.loadProject(this.project.id);
+      } catch (e) { alert('认领失败：' + e.message); }
+    },
+
+    async unclaimTask(task) {
+      if (!confirm(`确认取消认领任务「${task.title}」？任务将回到未分配状态。`)) return;
+      try {
+        const r = await fetch(`/api/tasks/${task.id}/unclaim`, {
+          method: 'POST', headers: this.authHeaders()
+        });
+        if (!r.ok) { alert((await r.json()).detail || '取消认领失败'); return; }
+        alert(`已取消认领任务「${task.title}」`);
+        await this.loadProject(this.project.id);
+      } catch (e) { alert('取消认领失败：' + e.message); }
+    },
+
     // —— 队长手动增删任务节点 ——
     addTaskOpen: false,
     addTaskMilestoneId: null,

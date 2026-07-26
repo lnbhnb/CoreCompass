@@ -306,6 +306,15 @@ def assign_task(task_id, assignee_id):
         conn.execute("UPDATE tasks SET assignee_id=? WHERE id=?", (assignee_id, task_id))
 
 
+def unassign_task(task_id):
+    """取消认领/分配：assignee_id 置空，同时清掉审阅状态（任务回到 planned 未分配态）。"""
+    with db.get_conn() as conn:
+        conn.execute(
+            "UPDATE tasks SET assignee_id=NULL, submission_filename=NULL, "
+            "submission_path=NULL, review_status=NULL WHERE id=?",
+            (task_id,))
+
+
 def submit_task(task_id, submission_filename, submission_path):
     with db.get_conn() as conn:
         conn.execute(
