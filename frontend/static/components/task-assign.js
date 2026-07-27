@@ -4,6 +4,11 @@ function taskAssign(parent, task) {
     submitting: false,
     showSubmitBox: false,
 
+    // 直接暴露 currentUser/currentRole/members，避免 Alpine.js x-for+x-data 嵌套作用域断裂
+    get currentUser() { return parent.currentUser; },
+    get currentRole() { return parent.currentRole; },
+    get members() { return parent.members; },
+
     async submitFile() {
       try {
         const fileInput = document.getElementById('submit-file-' + task.id);
