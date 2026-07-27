@@ -4,14 +4,15 @@ function taskAssign(parent, task) {
     submitting: false,
     showSubmitBox: false,
 
-    async submitFile(fileInput) {
+    async submitFile(taskId) {
+      const fileInput = document.getElementById('submit-file-' + taskId);
       const file = fileInput && fileInput.files && fileInput.files[0];
       if (!file) { alert('请先选择文件'); return; }
       this.submitting = true;
       try {
         const fd = new FormData();
         fd.append('file', file);
-        const r = await fetch(`/api/tasks/${task.id}/submit`, {
+        const r = await fetch(`/api/tasks/${taskId}/submit`, {
           method: 'POST',
           headers: parent.authHeaders(),
           body: fd
