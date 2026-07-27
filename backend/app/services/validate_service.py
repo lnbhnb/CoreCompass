@@ -99,6 +99,23 @@ VALIDATORS = {
 async def validate_milestone_artifact(milestone_id: int, filename: str, content: bytes):
     ms = models.get_milestone(milestone_id)
     ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "other"
+
+    # 类型匹配：上传文件扩展名必须与里程碑声明的产物类型一致
+    expected = ms["expected_artifact_type"]
+    type_map = {
+        "sql":  {"sql"},
+        "md":   {"md"},
+        "code": {"py", "js", "ts", "java", "go", "cpp", "c", "rs"},
+        "json": {"json"},
+        "yaml": {"yaml", "yml"},
+    }
+    allowed = type_map.get(expected, None)
+    if allowed is not None and ext not in allowed:
+        return {
+            "pass": False,
+            "reasons": [f"产物类型不匹配：里程碑期望 {expected}，但上传的是 .{ext} 文件"]
+        }
+
     text = content.decode("utf-8", errors="ignore")
     validator = VALIDATORS.get(ext)
     llm_used = False
