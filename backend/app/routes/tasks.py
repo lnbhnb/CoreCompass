@@ -52,6 +52,9 @@ def update_status(task_id: int, req: StatusUpdate, authorization: str | None = H
     # 审阅期间锁定：提交产物后待审阅时，不能手动完成（须由队长审阅驱动）
     if req.event == "complete" and task.get("review_status") == "pending_review":
         raise HTTPException(400, "任务正在审阅中，请等待队长审阅结果")
+    # 任务未分配不能开始
+    if req.event == "start" and not task.get("assignee_id"):
+        raise HTTPException(400, "请先分配或认领任务后再开始")
     try:
         new_status = transition_task(TaskStatus(task["status"]), req.event)
     except InvalidTransition as e:

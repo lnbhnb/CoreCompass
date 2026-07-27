@@ -437,7 +437,7 @@
                         <template x-if="t.status === 'planned' && t.assignee_id === currentUser?.id">
                           <button class="btn-mini btn-ghost" @click="unclaimTask(t)">取消认领</button>
                         </template>
-                        <template x-if="t.status === 'planned'">
+                        <template x-if="t.status === 'planned' && t.assignee_id">
                           <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
                         </template>
                         <template x-if="t.status === 'doing'">
