@@ -414,7 +414,7 @@
 
                 <ul class="task-list">
                   <template x-for="t in g.tasks" :key="t.id">
-                    <li class="task-item" :class="t.status" x-data="taskAssign($root, t)">
+                    <li class="task-item" :class="t.status" x-data="taskAssign($data, t)">
                       <div class="task-row">
                         <span class="task-dot" :class="t.priority"></span>
                         <div class="task-body">
