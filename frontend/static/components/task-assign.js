@@ -4,15 +4,15 @@ function taskAssign(parent, task) {
     submitting: false,
     showSubmitBox: false,
 
-    async submitFile(taskId) {
-      const fileInput = document.getElementById('submit-file-' + taskId);
-      const file = fileInput && fileInput.files && fileInput.files[0];
-      if (!file) { alert('请先选择文件'); return; }
-      this.submitting = true;
+    async submitFile() {
       try {
+        const fileInput = document.getElementById('submit-file-' + task.id);
+        const file = fileInput && fileInput.files && fileInput.files[0];
+        if (!file) { alert('请先选择文件'); return; }
+        this.submitting = true;
         const fd = new FormData();
         fd.append('file', file);
-        const r = await fetch(`/api/tasks/${taskId}/submit`, {
+        const r = await fetch(`/api/tasks/${task.id}/submit`, {
           method: 'POST',
           headers: parent.authHeaders(),
           body: fd
@@ -20,6 +20,8 @@ function taskAssign(parent, task) {
         if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || '提交失败'); return; }
         this.showSubmitBox = false;
         await parent.loadProject(parent.project.id);
+      } catch (err) {
+        alert('提交出错：' + (err.message || err));
       } finally {
         this.submitting = false;
       }

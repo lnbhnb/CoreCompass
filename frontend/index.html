@@ -452,16 +452,15 @@
                       </div>
 
                       <!-- 提交审阅文件框（仅负责人） -->
-                      <template x-if="t.status === 'doing' && t.assignee_id === currentUser?.id && showSubmitBox">
-                        <div class="task-submit-box">
+                      <div x-show="t.status === 'doing' && t.assignee_id === currentUser?.id && showSubmitBox"
+                        class="task-submit-box" x-cloak>
                           <input type="file" :id="'submit-file-' + t.id" class="upload-input">
-                          <button class="btn-mini btn-accent" @click="submitFile(t.id)"
+                          <button class="btn-mini btn-accent" @click="submitFile()"
                             :disabled="submitting">
                             <span x-text="submitting ? '提交中…' : '确认提交'"></span>
                           </button>
                           <button class="btn-mini btn-ghost" @click="showSubmitBox = false">取消</button>
                         </div>
-                      </template>
 
                       <!-- 提交产物展示（所有成员可见） -->
                       <template x-if="t.submission_filename">
