@@ -20,7 +20,7 @@
 
 ### 突出点① 任务审阅 + 产物质量保障（反"AI 盲信"）
 
-里程碑完成不再靠"上传一个文件自动校验通过"，而是由**任务审阅流程驱动**：里程碑下所有任务全部完成（done），里程碑自动通过。
+里程碑完成不再靠"上传一个文件自动校验通过"，而是由**任务审阅流程驱动**：队员提交产物 → 队长审阅通过 → 任务自动 `done` → 系统检查该里程碑下所有任务是否全部完成 → 是则里程碑自动 `done` → 所有里程碑完成则项目自动 `completed`。
 
 每个里程碑声明 `expected_artifact_type`（sql / md / code / json / yaml），队员在任务中提交产物时，系统内置的 5 类校验器可对产物做结构化检查。校验器作为工具函数保留，供任务审阅时参考：
 
@@ -96,7 +96,7 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
 | **感知（Perception）** | APScheduler 定时巡检任务逾期、读取项目产能数据 | [notify_service.py](backend/app/services/notify_service.py) |
 | **决策（Decision）** | LLM 在 2 处参与：初始拆解、重规划提案 | [llm/client.py](backend/app/llm/client.py) |
 | **工具调用（Tool Use）** | 状态机、产能计算、知识库匹配、5 类校验器（辅助用） | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
-| **执行（Action）** | 强制砍 optional 任务、状态转移、任务审阅流转 | [replan_service.py](backend/app/services/replan_service.py) |
+| **执行（Action）** | 强制砍 optional 任务、状态转移、任务审阅流转、自动推进里程碑/项目状态 | [replan_service.py](backend/app/services/replan_service.py) / [review_service.py](backend/app/services/review_service.py) |
 | **反馈（Feedback）** | 飞书 webhook 推送、看板刷新、通知日志 | [notify_service.py](backend/app/services/notify_service.py) |
 | **知识库（Knowledge）** | SDLC 模型 / 开源项目里程碑 / 比赛日程，关键词匹配 + few-shot 注入 Prompt | [knowledge_service.py](backend/app/services/knowledge_service.py) |
 | **持久状态（Memory）** | SQLite 存储项目/任务/里程碑/校验记录/通知日志 | [models.py](backend/app/models.py) |
@@ -315,7 +315,7 @@ CoreCompass/
 │   │   │   ├── notify_service.py    # 飞书 webhook + APScheduler
 │   │   │   ├── auth_service.py      # PBKDF2 哈希 + token
 │   │   │   ├── member_service.py    # 邀请码 + 进度统计
-│   │   │   ├── review_service.py    # 任务审阅流转
+│   │   │   ├── review_service.py    # 任务审阅流转 + 里程碑自动推进
 │   │   │   └── knowledge_service.py # 知识库匹配 + 上下文注入
 │   │   └── llm/                 # LLM 客户端 + Prompt 模板
 │   │       ├── __init__.py
@@ -392,9 +392,9 @@ CoreCompass 与主流工具的差异：
 | 流程 | 责任人 | 关注点 | 结果 |
 |---|---|---|---|
 | 任务审阅 | 队长 | 队员**有没有认真做**（人审） | `pending_review → approved / rejected` |
-| 里程碑推进 | 系统 | 所有任务 done → 里程碑 done | `planned → in_progress → done` |
+| 里程碑推进 | 系统 | 所有任务 done → 里程碑 done → 项目 completed | `planned → in_progress → done`（自动） |
 
-> 队长审阅通过不代表任务完美——但这是学生团队协作的现实：队长签字确认 = 这项任务可以翻篇。所有任务翻篇，里程碑自然通过。
+> 队长审阅通过 → 任务自动 done → 系统检测里程碑完成度 → 自动推进。整个链路无需手动操作里程碑状态。
 
 ## 落地价值
 

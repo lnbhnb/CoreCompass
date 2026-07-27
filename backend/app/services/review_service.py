@@ -1,5 +1,6 @@
 from app import models
 from app.services import auth_service
+from app.state_machine import MilestoneStatus, ProjectStatus
 
 
 def _user_from_token(token):
@@ -89,6 +90,8 @@ def review_task(task_id, decision, leader_token, project_id, comment=None):
     if decision == "approved" and task["status"] != "done":
         from datetime import datetime
         models.update_task_status(task_id, "done", datetime.now().isoformat())
+        # 检查该里程碑是否全部完成，推进里程碑→done
+        advance_milestone_if_complete(project_id, task["milestone_id"])
     if task.get("assignee_id"):
         assignee = models.get_user(task["assignee_id"])
         if assignee:
@@ -106,3 +109,25 @@ def _notify_leader(project_id, ntype, content):
         if m["role"] == "leader":
             models.insert_notification(project_id, ntype, content, "sent", None)
             break
+
+
+def advance_milestone_if_complete(project_id: int, milestone_id: int):
+    """检查里程碑下所有非 cut 任务是否全部 done，如是则推进里程碑→done。
+    如所有里程碑 done，则推进项目→completed。"""
+    tasks = models.list_tasks_by_milestone(milestone_id)
+    active = [t for t in tasks if t["status"] != "cut"]
+    if not active:
+        return  # 没有活跃任务，不推进
+
+    all_done = all(t["status"] == "done" for t in active)
+    if not all_done:
+        return
+
+    ms = models.get_milestone(milestone_id)
+    if ms and ms["status"] != MilestoneStatus.DONE.value:
+        models.update_milestone_status(milestone_id, MilestoneStatus.DONE.value)
+
+    # 检查项目级：所有里程碑 done → 项目 completed
+    all_ms = models.list_milestones(project_id)
+    if all(m["status"] == MilestoneStatus.DONE.value for m in all_ms):
+        models.update_project_status(project_id, ProjectStatus.COMPLETED.value)

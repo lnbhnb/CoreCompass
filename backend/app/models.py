@@ -67,6 +67,12 @@ def list_tasks_by_project(pid, include_cut=False):
         return [dict(r) for r in conn.execute(sql, (pid,)).fetchall()]
 
 
+def list_tasks_by_milestone(mid):
+    with db.get_conn() as conn:
+        return [dict(r) for r in conn.execute(
+            "SELECT * FROM tasks WHERE milestone_id=? ORDER BY due_date", (mid,)).fetchall()]
+
+
 def update_task_status(task_id, status, completed_at=None):
     with db.get_conn() as conn:
         conn.execute("UPDATE tasks SET status=?, completed_at=? WHERE id=?",

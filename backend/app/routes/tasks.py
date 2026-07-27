@@ -2,6 +2,7 @@ from fastapi import APIRouter, HTTPException, Header
 from pydantic import BaseModel
 from app import models, deps
 from app.state_machine import TaskStatus, transition_task, InvalidTransition
+from app.services.review_service import advance_milestone_if_complete
 from datetime import datetime
 
 router = APIRouter()
@@ -54,6 +55,8 @@ def update_status(task_id: int, req: StatusUpdate, authorization: str | None = H
         raise HTTPException(400, str(e))
     completed_at = datetime.now().isoformat() if new_status == TaskStatus.DONE else None
     models.update_task_status(task_id, new_status.value, completed_at)
+    if new_status == TaskStatus.DONE:
+        advance_milestone_if_complete(task["project_id"], task["milestone_id"])
     return {"task_id": task_id, "status": new_status.value}
 
 
