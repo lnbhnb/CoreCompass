@@ -54,16 +54,6 @@ REPLAN_PROMPT = """项目出现进度缺口，需要砍/降级任务。
 铁律：只能砍 priority=optional 的任务；core 任务只能降级不能砍；降级后 est_effort 必须减少。
 """
 
-VALIDATE_FALLBACK_PROMPT = """校验以下文件是否符合里程碑要求。
-里程碑名：{milestone_name}
-文件类型：{file_type}
-文件内容（截断）：
----
-{content}
----
-输出严格 JSON：{{"pass": true/false, "reasons": ["原因1"]}}
-"""
-
 FALLBACK_INITIAL_PLAN = {
     "milestones": [
         {"name": "需求分析", "expected_artifact_type": "md", "tasks": [

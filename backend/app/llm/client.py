@@ -7,7 +7,7 @@ from openai import OpenAI
 from json_repair import repair_json
 from app import config
 from app.llm.prompts import (INITIAL_PLAN_PROMPT, INITIAL_PLAN_PROMPT_WITH_KB,
-                             REPLAN_PROMPT, VALIDATE_FALLBACK_PROMPT,
+                             REPLAN_PROMPT,
                              FALLBACK_INITIAL_PLAN, FALLBACK_REPLAN_PROPOSAL)
 
 logger = logging.getLogger(__name__)
@@ -94,11 +94,3 @@ def generate_replan_proposal(remaining_days, team_size, gap_days, tasks_json):
     except LLMUnavailableError:
         logger.error("重规划 LLM 失败，用 fallback")
         return FALLBACK_REPLAN_PROPOSAL
-
-
-def validate_with_llm(milestone_name, file_type, content):
-    try:
-        return call_llm(VALIDATE_FALLBACK_PROMPT.format(
-            milestone_name=milestone_name, file_type=file_type, content=content[:8000]))
-    except LLMUnavailableError:
-        return {"pass": False, "reasons": ["AI 校验失败，请人工确认"]}

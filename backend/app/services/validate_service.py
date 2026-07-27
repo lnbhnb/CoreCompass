@@ -4,9 +4,6 @@ import json
 import yaml
 import sqlparse
 from typing import Dict, Any
-from app import models
-from app.llm import client
-from app.state_machine import MilestoneStatus
 
 
 def validate_sql(content: str) -> Dict[str, Any]:
@@ -96,45 +93,5 @@ VALIDATORS = {
 }
 
 
-async def validate_milestone_artifact(milestone_id: int, filename: str, content: bytes):
-    ms = models.get_milestone(milestone_id)
-    ext = filename.rsplit(".", 1)[-1].lower() if "." in filename else "other"
-
-    # 类型匹配：上传文件扩展名必须与里程碑声明的产物类型一致
-    expected = ms["expected_artifact_type"]
-    type_map = {
-        "sql":  {"sql"},
-        "md":   {"md"},
-        "code": {"py", "js", "ts", "java", "go", "cpp", "c", "rs"},
-        "json": {"json"},
-        "yaml": {"yaml", "yml"},
-    }
-    allowed = type_map.get(expected, None)
-    if allowed is not None and ext not in allowed:
-        return {
-            "pass": False,
-            "reasons": [f"产物类型不匹配：里程碑期望 {expected}，但上传的是 .{ext} 文件"]
-        }
-
-    text = content.decode("utf-8", errors="ignore")
-    validator = VALIDATORS.get(ext)
-    llm_used = False
-    if validator:
-        result = validator(text)
-    else:
-        result = client.validate_with_llm(ms["name"], ext, text)
-        llm_used = True
-    fail_reasons = json.dumps(result.get("reasons", []), ensure_ascii=False)
-    models.insert_validation(
-        milestone_id, filename, ext,
-        "pass" if result.get("pass") else "fail",
-        fail_reasons, llm_used)
-    if result.get("pass"):
-        models.update_milestone_status(milestone_id, MilestoneStatus.DONE.value)
-    else:
-        models.update_milestone_status(milestone_id, MilestoneStatus.LOCKED.value)
-    return result
-
-
-def can_proceed_to_next(project_id: int, current_milestone_id: int) -> bool:
-    return models.get_milestone(current_milestone_id)["status"] == MilestoneStatus.DONE.value
+# 里程碑状态由任务审阅流程驱动（所有任务 done → 里程碑 done），
+# 不再通过单文件校验自动变更。以下校验函数保留供未来任务审阅时使用。

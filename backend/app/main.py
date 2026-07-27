@@ -4,7 +4,7 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from pathlib import Path
 from app.db import init_db
-from app.routes import projects, validate, replan, notify, tasks, auth, reviews, members
+from app.routes import projects, replan, notify, tasks, auth, reviews, members
 from app.services import notify_service
 
 app = FastAPI(title="CoreCompass")
@@ -33,7 +33,6 @@ def health():
 
 
 app.include_router(projects.router)
-app.include_router(validate.router)
 app.include_router(replan.router)
 app.include_router(notify.router)
 app.include_router(tasks.router)

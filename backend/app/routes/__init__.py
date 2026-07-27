@@ -1,1 +1,1 @@
-from app.routes import projects, validate, replan, notify, tasks
+from app.routes import projects, replan, notify, tasks
