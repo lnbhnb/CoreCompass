@@ -29,8 +29,6 @@ def assign_task(task_id, assignee_id, leader_token, project_id):
     assignee_member = models.get_project_member(project_id, assignee_id)
     if not assignee_member:
         raise PermissionError("被分配人不是项目成员")
-    if assignee_member["role"] == "leader":
-        raise PermissionError("队长负责审阅，不能被分配任务")
     models.assign_task(task_id, assignee_id)
 
 
@@ -84,7 +82,13 @@ def review_task(task_id, decision, leader_token, project_id, comment=None):
     task = models.get_task(task_id)
     if not task:
         raise ValueError("任务不存在")
+    if task.get("review_status") != "pending_review":
+        raise PermissionError("当前任务不在待审阅状态")
     models.review_task(task_id, decision, leader["id"], comment)
+    # 通过则自动标记任务为已完成
+    if decision == "approved" and task["status"] != "done":
+        from datetime import datetime
+        models.update_task_status(task_id, "done", datetime.now().isoformat())
     if task.get("assignee_id"):
         assignee = models.get_user(task["assignee_id"])
         if assignee:

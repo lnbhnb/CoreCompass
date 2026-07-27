@@ -68,10 +68,11 @@ function memberProgress(parent) {
       if (!r.ok) { alert('审阅失败'); return; }
       this.reviewComment = '';
       await this.load();
+      await parent.loadProject(parent.project.id);
     },
 
-    downloadUrl(taskId) {
-      return `/api/tasks/${taskId}/submission`;
+    downloadSubmission(taskId, filename) {
+      return parent.downloadSubmission(taskId, filename);
     },
     go(path) { parent.navigate(path); }
   }

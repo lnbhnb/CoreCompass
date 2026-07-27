@@ -31,6 +31,7 @@ function taskBoard(parent) {
     unclaimTask(task) { parent.unclaimTask(task); },
     authHeaders() { return parent.authHeaders(); },
     loadProject(pid) { return parent.loadProject(pid); },
+    downloadSubmission(taskId, filename) { return parent.downloadSubmission(taskId, filename); },
     get members() { return parent.members; },
     get project() { return parent.project; },
     get currentRole() { return parent.currentRole; },

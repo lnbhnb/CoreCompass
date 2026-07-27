@@ -6,6 +6,11 @@ function app() {
     project: null, milestones: [], tasks: [], notifications: [],
     usedReferences: null, currentRole: null, members: [],
 
+    // —— 左侧栏收缩 / 拖拽宽度 ——
+    railCollapsed: false,
+    railWidth: parseInt(localStorage.getItem('cc_rail_w') || '280', 10),
+    railDragging: false,
+
     init() {
       if (this.token) {
         this.fetchUser();
@@ -14,6 +19,56 @@ function app() {
       }
       window.addEventListener('hashchange', () => this.handleHash());
       this.handleHash();
+      this.$nextTick(() => this.applyRailWidth());
+    },
+
+    toggleRail() {
+      this.railCollapsed = !this.railCollapsed;
+    },
+
+    applyRailWidth() {
+      document.documentElement.style.setProperty('--rail-w', this.railWidth + 'px');
+    },
+
+    startRailResize(e) {
+      // 仅在展开态拖拽
+      if (this.railCollapsed) return;
+      this.railDragging = true;
+      const startX = e.clientX;
+      const startW = this.railWidth;
+      const minW = 200, maxW = 480;
+      const onMove = (ev) => {
+        const w = Math.min(maxW, Math.max(minW, startW + (ev.clientX - startX)));
+        this.railWidth = w;
+        this.applyRailWidth();
+      };
+      const onUp = () => {
+        this.railDragging = false;
+        localStorage.setItem('cc_rail_w', String(this.railWidth));
+        document.removeEventListener('mousemove', onMove);
+        document.removeEventListener('mouseup', onUp);
+        document.body.classList.remove('rail-resizing');
+      };
+      document.body.classList.add('rail-resizing');
+      document.addEventListener('mousemove', onMove);
+      document.addEventListener('mouseup', onUp);
+      e.preventDefault();
+    },
+
+    async downloadSubmission(taskId, filename) {
+      try {
+        const r = await fetch(`/api/tasks/${taskId}/submission`, { headers: this.authHeaders() });
+        if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || '下载失败'); return; }
+        const blob = await r.blob();
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = filename || `task_${taskId}_submission`;
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } catch (e) { alert('下载失败：' + e.message); }
     },
 
     handleHash() {
@@ -88,17 +143,6 @@ function app() {
       this.members = mr.ok ? await mr.json() : [];
     },
 
-    async triggerOverdue() {
-      try {
-        const r = await fetch(`/api/replan/${this.project.id}/trigger_overdue`, {
-          method: 'POST', headers: this.authHeaders()
-        });
-        const data = r.ok ? await r.json() : { message: '操作失败' };
-        alert(data.message || '已触发偏航');
-      } catch (e) { alert('模拟偏航失败：' + e.message); }
-      await this.loadProject(this.project.id);
-    },
-
     // —— 重规划（直接放在 app 根，避免组件挂载时序问题）——
     replanOpen: false,
     replanLoading: false,
@@ -164,7 +208,8 @@ function app() {
     },
 
     get assignableMembers() {
-      return (this.members || []).filter(m => m.role === 'member');
+      // 队长与队员均可被分配任务
+      return (this.members || []).slice();
     },
 
     async doAssign(userId) {

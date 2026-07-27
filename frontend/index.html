@@ -17,75 +17,92 @@
 </head>
 
 <body>
-  <div class="app-shell" x-data="app()" x-init="init()">
+  <div class="app-shell" x-data="app()" x-init="init()" :class="{ 'rail-collapsed': railCollapsed }">
     <!-- 左侧罗盘导航栏 -->
-    <aside class="compass-rail">
-      <div class="brand">
-        <svg class="brand-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
-          <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1.5" opacity="0.4" />
-          <circle cx="32" cy="32" r="22" stroke="currentColor" stroke-width="1" opacity="0.25" />
-          <path d="M32 8 L36 32 L32 56 L28 32 Z" fill="var(--compass)" />
-          <path d="M8 32 L32 28 L56 32 L32 36 Z" fill="var(--brass)" opacity="0.7" />
-          <circle cx="32" cy="32" r="3" fill="var(--parchment)" />
+    <aside class="compass-rail" :class="{ collapsed: railCollapsed }">
+      <!-- 收缩/展开箭头 -->
+      <button class="rail-toggle" @click="toggleRail()" :title="railCollapsed ? '展开侧栏' : '收起侧栏'" x-show="!railCollapsed"
+        x-cloak>
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M15 6 L9 12 L15 18" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <div class="brand-text">
-          <strong>CORE<span>COMPASS</span></strong>
-          <em>校园项目进度护栏</em>
-        </div>
-      </div>
-
-      <!-- 罗盘进度环（项目阶段指针） -->
-      <div class="compass-dial" x-show="project" x-cloak>
-        <svg viewBox="0 0 200 200" class="dial-svg">
-          <circle cx="100" cy="100" r="92" class="dial-ring" />
-          <circle cx="100" cy="100" r="78" class="dial-ring-inner" />
-          <!-- 方位刻度 -->
-          <g class="dial-ticks" stroke="currentColor">
-            <line x1="100" y1="14" x2="100" y2="24" />
-            <line x1="100" y1="176" x2="100" y2="186" />
-            <line x1="14" y1="100" x2="24" y2="100" />
-            <line x1="176" y1="100" x2="186" y2="100" />
-          </g>
-          <text x="100" y="12" text-anchor="middle" class="dial-cardinal">N</text>
-          <text x="100" y="196" text-anchor="middle" class="dial-cardinal">S</text>
-          <text x="8" y="105" text-anchor="middle" class="dial-cardinal">W</text>
-          <text x="192" y="105" text-anchor="middle" class="dial-cardinal">E</text>
-          <!-- 指针：外层 ambient 摆动，内层按里程碑进度旋转 -->
-          <g class="dial-needle-ambient">
-            <g class="dial-needle" :style="`transform: rotate(${needleAngle()}deg)`">
-              <path d="M100 28 L106 100 L100 108 L94 100 Z" class="needle-north" />
-              <path d="M100 172 L106 100 L100 92 L94 100 Z" class="needle-south" />
-              <circle cx="100" cy="100" r="5" class="needle-pivot" />
-              <circle cx="100" cy="100" r="9" class="needle-pivot-glow" />
-            </g>
-          </g>
+      </button>
+      <!-- 拖拽分隔条 -->
+      <div class="rail-resizer" @mousedown="startRailResize($event)" x-show="!railCollapsed" x-cloak></div>
+      <!-- 收起态：仅显示展开按钮 -->
+      <button class="rail-toggle-collapsed" @click="toggleRail()" x-show="railCollapsed" x-cloak title="展开侧栏">
+        <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M9 6 L15 12 L9 18" stroke-linecap="round" stroke-linejoin="round" />
         </svg>
-        <div class="dial-readout">
-          <span class="readout-label">当前航向</span>
-          <strong class="readout-value" x-text="currentHeading()"></strong>
-          <span class="readout-progress" x-text="progressText()"></span>
-        </div>
-      </div>
-
-      <!-- 导航项 -->
-      <nav class="rail-nav" x-show="project" x-cloak>
-        <button @click="scrollTo('board')">里程碑看板</button>
-        <button @click="scrollTo('notify')">通知日志</button>
-      </nav>
-
-      <div class="rail-footer">
-        <span class="footer-coord" x-text="coordsLabel()"></span>
-        <template x-if="currentUser">
-          <div class="compass-user">
-            <span class="cu-name" x-text="currentUser.display_name"></span>
-            <span class="cu-role"
-              x-text="currentRole === 'leader' ? '队长' : (currentRole === 'member' ? '队员' : '')"></span>
-            <button class="cu-logout" @click="logout()">登出</button>
+      </button>
+      <div class="rail-inner" x-show="!railCollapsed" x-cloak>
+        <div class="brand">
+          <svg class="brand-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+            <circle cx="32" cy="32" r="30" stroke="currentColor" stroke-width="1.5" opacity="0.4" />
+            <circle cx="32" cy="32" r="22" stroke="currentColor" stroke-width="1" opacity="0.25" />
+            <path d="M32 8 L36 32 L32 56 L28 32 Z" fill="var(--compass)" />
+            <path d="M8 32 L32 28 L56 32 L32 36 Z" fill="var(--brass)" opacity="0.7" />
+            <circle cx="32" cy="32" r="3" fill="var(--parchment)" />
+          </svg>
+          <div class="brand-text">
+            <strong>CORE<span>COMPASS</span></strong>
+            <em>校园项目进度护栏</em>
           </div>
-        </template>
-        <template x-if="!currentUser">
-          <span class="compass-guest">未登录</span>
-        </template>
+        </div>
+
+        <!-- 罗盘进度环（项目阶段指针） -->
+        <div class="compass-dial" x-show="project" x-cloak>
+          <svg viewBox="0 0 200 200" class="dial-svg">
+            <circle cx="100" cy="100" r="92" class="dial-ring" />
+            <circle cx="100" cy="100" r="78" class="dial-ring-inner" />
+            <!-- 方位刻度 -->
+            <g class="dial-ticks" stroke="currentColor">
+              <line x1="100" y1="14" x2="100" y2="24" />
+              <line x1="100" y1="176" x2="100" y2="186" />
+              <line x1="14" y1="100" x2="24" y2="100" />
+              <line x1="176" y1="100" x2="186" y2="100" />
+            </g>
+            <text x="100" y="12" text-anchor="middle" class="dial-cardinal">N</text>
+            <text x="100" y="196" text-anchor="middle" class="dial-cardinal">S</text>
+            <text x="8" y="105" text-anchor="middle" class="dial-cardinal">W</text>
+            <text x="192" y="105" text-anchor="middle" class="dial-cardinal">E</text>
+            <!-- 指针：外层 ambient 摆动，内层按里程碑进度旋转 -->
+            <g class="dial-needle-ambient">
+              <g class="dial-needle" :style="`transform: rotate(${needleAngle()}deg)`">
+                <path d="M100 28 L106 100 L100 108 L94 100 Z" class="needle-north" />
+                <path d="M100 172 L106 100 L100 92 L94 100 Z" class="needle-south" />
+                <circle cx="100" cy="100" r="5" class="needle-pivot" />
+                <circle cx="100" cy="100" r="9" class="needle-pivot-glow" />
+              </g>
+            </g>
+          </svg>
+          <div class="dial-readout">
+            <span class="readout-label">当前航向</span>
+            <strong class="readout-value" x-text="currentHeading()"></strong>
+            <span class="readout-progress" x-text="progressText()"></span>
+          </div>
+        </div>
+
+        <!-- 导航项 -->
+        <nav class="rail-nav" x-show="project" x-cloak>
+          <button @click="scrollTo('board')">里程碑看板</button>
+          <button @click="scrollTo('notify')">通知日志</button>
+        </nav>
+
+        <div class="rail-footer">
+          <span class="footer-coord" x-text="coordsLabel()"></span>
+          <template x-if="currentUser">
+            <div class="compass-user">
+              <span class="cu-name" x-text="currentUser.display_name"></span>
+              <span class="cu-role"
+                x-text="currentRole === 'leader' ? '队长' : (currentRole === 'member' ? '队员' : '')"></span>
+              <button class="cu-logout" @click="logout()">退出登录</button>
+            </div>
+          </template>
+          <template x-if="!currentUser">
+            <span class="compass-guest">未登录</span>
+          </template>
+        </div>
       </div>
     </aside>
 
@@ -185,7 +202,8 @@
               <template x-if="currentRole === 'leader'">
                 <button class="btn-accent" @click="generateInvite()">+ 生成邀请码</button>
               </template>
-              <button class="btn-ghost" @click="go('/projects/' + projectId)">← 回看板</button>
+              <button class="btn-ghost" @click="go('/projects')">← 返回首页</button>
+              <button class="btn-ghost" @click="go('/projects/' + projectId)">回看板</button>
             </div>
           </header>
 
@@ -227,7 +245,7 @@
                   </div>
                   <input class="ri-comment" x-model="reviewComment" placeholder="审阅意见（可选）">
                   <div class="ri-actions">
-                    <a :href="downloadUrl(t.id)" target="_blank">查看产物</a>
+                    <button class="btn-ghost" @click="downloadSubmission(t.id, t.submission_filename)">查看产物</button>
                     <button class="btn-approve" @click="review(t.id, 'approved')">通过</button>
                     <button class="btn-reject" @click="review(t.id, 'rejected')">拒绝</button>
                   </div>
@@ -359,8 +377,8 @@
               </div>
             </div>
             <div class="header-actions">
+              <button class="btn-ghost" @click="navigate('/projects')">← 返回首页</button>
               <button class="btn-ghost" @click="navigate('/projects/' + project.id + '/members')">成员进度</button>
-              <button class="btn-ghost" @click="triggerOverdue()" x-show="currentRole === 'leader'">模拟偏航</button>
               <button class="btn-accent" @click="proposeReplan()" x-show="currentRole === 'leader'">触发重规划</button>
               <button class="btn-ghost" @click="openNotifyConfig()" x-show="currentRole === 'leader'">通知设置</button>
               <button class="btn-danger" @click="openDeleteProject()" x-show="currentRole === 'leader'">删除项目</button>
@@ -397,33 +415,86 @@
                 <ul class="task-list">
                   <template x-for="t in g.tasks" :key="t.id">
                     <li class="task-item" :class="t.status" x-data="taskAssign($root, t)">
-                      <span class="task-dot" :class="t.priority"></span>
-                      <div class="task-body">
-                        <span class="task-title" x-text="t.title"></span>
-                        <span class="task-tags">
-                          <em x-text="statusLabel(t.status)"></em>
-                          <em class="pri" x-text="priorityLabel(t.priority)"></em>
-                          <em class="assignee" x-show="t.assignee_id"
-                            x-text="'👤 ' + (members.find(m => m.id === t.assignee_id)?.display_name || '已分配')"></em>
-                        </span>
+                      <div class="task-row">
+                        <span class="task-dot" :class="t.priority"></span>
+                        <div class="task-body">
+                          <span class="task-title" x-text="t.title"></span>
+                          <span class="task-tags">
+                            <em x-text="statusLabel(t.status)"></em>
+                            <em class="pri" x-text="priorityLabel(t.priority)"></em>
+                            <em class="assignee" x-show="t.assignee_id"
+                              x-text="'👤 ' + (members.find(m => m.id === t.assignee_id)?.display_name || '已分配')"></em>
+                            <em class="rv-badge" :class="reviewStatusClass(t.review_status)" x-show="t.review_status"
+                              x-text="reviewStatusLabel(t.review_status)"></em>
+                          </span>
+                        </div>
+                        <template x-if="t.status === 'planned' && !t.assignee_id && currentRole !== 'leader'">
+                          <button class="btn-mini btn-accent" @click="claimTask(t)">认领</button>
+                        </template>
+                        <template x-if="t.status === 'planned' && !t.assignee_id && currentRole === 'leader'">
+                          <button class="btn-mini" @click="openAssign(t)">分配</button>
+                        </template>
+                        <template x-if="t.status === 'planned' && t.assignee_id === currentUser?.id">
+                          <button class="btn-mini btn-ghost" @click="unclaimTask(t)">取消认领</button>
+                        </template>
+                        <template x-if="t.status === 'planned'">
+                          <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
+                        </template>
+                        <template x-if="t.status === 'doing'">
+                          <button class="btn-mini" @click="updateStatus(t.id, 'complete')">完成</button>
+                        </template>
+                        <template x-if="t.status === 'doing' && t.assignee_id === currentUser?.id">
+                          <button class="btn-mini btn-accent" @click="showSubmitBox = !showSubmitBox">提交审阅</button>
+                        </template>
+                        <template x-if="t.status === 'planned' && currentRole === 'leader'">
+                          <button class="btn-mini btn-danger" @click="askDeleteTask(t)">删除</button>
+                        </template>
                       </div>
-                      <template x-if="t.status === 'planned' && !t.assignee_id && currentRole !== 'leader'">
-                        <button class="btn-mini btn-accent" @click="claimTask(t)">认领</button>
+
+                      <!-- 提交审阅文件框（仅负责人） -->
+                      <template x-if="t.status === 'doing' && t.assignee_id === currentUser?.id && showSubmitBox">
+                        <div class="task-submit-box">
+                          <input type="file" :id="'submit-file-' + t.id" class="upload-input">
+                          <button class="btn-mini btn-accent" @click="submitFile($el.previousElementSibling)"
+                            :disabled="submitting">
+                            <span x-text="submitting ? '提交中…' : '确认提交'"></span>
+                          </button>
+                          <button class="btn-mini btn-ghost" @click="showSubmitBox = false">取消</button>
+                        </div>
                       </template>
-                      <template x-if="t.status === 'planned' && !t.assignee_id && currentRole === 'leader'">
-                        <button class="btn-mini" @click="openAssign(t)">分配</button>
+
+                      <!-- 提交产物展示（所有成员可见） -->
+                      <template x-if="t.submission_filename">
+                        <div class="task-submission">
+                          <span class="ts-label">📄 提交产物：</span>
+                          <span class="ts-file" x-text="t.submission_filename"></span>
+                          <button class="btn-mini" @click="download()">下载查看</button>
+                        </div>
                       </template>
-                      <template x-if="t.status === 'planned' && t.assignee_id === currentUser?.id">
-                        <button class="btn-mini btn-ghost" @click="unclaimTask(t)">取消认领</button>
+
+                      <!-- 审阅区（队长可见，含队长自审） -->
+                      <template x-if="t.review_status === 'pending_review' && currentRole === 'leader'">
+                        <div class="task-review-box">
+                          <span class="tr-label">队长的审阅</span>
+                          <input class="ri-comment" x-model="reviewComment" placeholder="审阅意见（可选）">
+                          <div class="tr-actions">
+                            <button class="btn-mini btn-approve" @click="review('approved')">通过</button>
+                            <button class="btn-mini btn-reject" @click="review('rejected')">打回</button>
+                          </div>
+                        </div>
                       </template>
-                      <template x-if="t.status === 'planned'">
-                        <button class="btn-mini" @click="updateStatus(t.id, 'start')">开始</button>
+
+                      <!-- 审阅结果反馈（所有人可见） -->
+                      <template x-if="t.review_status === 'rejected' && t.review_comment">
+                        <div class="task-review-feedback">
+                          <span class="rf-label">✗ 打回意见：</span>
+                          <span class="rf-text" x-text="t.review_comment"></span>
+                        </div>
                       </template>
-                      <template x-if="t.status === 'doing'">
-                        <button class="btn-mini" @click="updateStatus(t.id, 'complete')">完成</button>
-                      </template>
-                      <template x-if="t.status === 'planned' && currentRole === 'leader'">
-                        <button class="btn-mini btn-danger" @click="askDeleteTask(t)">删除</button>
+                      <template x-if="t.review_status === 'approved'">
+                        <div class="task-review-feedback approved">
+                          <span class="rf-label">✓ 审阅通过</span>
+                        </div>
                       </template>
                     </li>
                   </template>
@@ -432,28 +503,6 @@
                 <template x-if="currentRole === 'leader'">
                   <button class="btn-ghost btn-add-task" @click="openAddTask(g.milestone.id)">+ 新增任务</button>
                 </template>
-
-                <!-- 上传验收区 -->
-                <div class="upload-zone" x-data="uploadPanel($root)">
-                  <div class="upload-row">
-                    <input type="file" :id="'file-'+g.milestone.id" class="upload-input">
-                    <label :for="'file-'+g.milestone.id" class="upload-label">选择产物文件</label>
-                    <button class="btn-mini"
-                      @click="upload(g.milestone.id, $el.previousElementSibling.previousElementSibling)"
-                      :disabled="uploading">
-                      <span x-text="uploading ? '校验中…' : '上传验收'"></span>
-                    </button>
-                  </div>
-                  <div x-show="lastResult" class="upload-result" :class="lastResult?.pass ? 'pass' : 'fail'" x-cloak>
-                    <span class="result-icon" x-text="lastResult?.pass ? '✓' : '✗'"></span>
-                    <span x-text="lastResult?.pass ? '通过，解锁下一阶段' : '未通过'"></span>
-                    <ul x-show="lastResult?.reasons?.length">
-                      <template x-for="r in lastResult?.reasons || []">
-                        <li x-text="r"></li>
-                      </template>
-                    </ul>
-                  </div>
-                </div>
               </article>
             </template>
           </div>
@@ -649,7 +698,7 @@
                 <template x-for="m in assignableMembers" :key="m.id">
                   <li class="assign-pop-item" @click="doAssign(m.id)" :class="{ 'is-loading': assignLoading }">
                     <span x-text="m.display_name"></span>
-                    <em>队员</em>
+                    <em x-text="m.role === 'leader' ? '队长' : '队员'"></em>
                   </li>
                 </template>
               </ul>
@@ -665,7 +714,6 @@
   <script src="/static/app.js"></script>
   <script src="/static/components/project-create.js"></script>
   <script src="/static/components/task-board.js"></script>
-  <script src="/static/components/upload-panel.js"></script>
   <script src="/static/components/notify-log.js"></script>
   <script src="/static/components/auth.js"></script>
   <script src="/static/components/project-list.js"></script>

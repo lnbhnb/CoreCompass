@@ -61,8 +61,8 @@ body {
   background: var(--ink);
   color: var(--parchment);
   font-family: var(--font-body);
-  font-size: 15px;
-  line-height: 1.55;
+  font-size: 16px;
+  line-height: 1.6;
   -webkit-font-smoothing: antialiased;
 }
 
@@ -437,8 +437,8 @@ button:disabled {
   background: var(--compass);
   color: var(--ink);
   font-weight: 600;
-  font-size: 14px;
-  padding: 13px 24px;
+  font-size: 16px;
+  padding: 14px 26px;
   width: 100%;
   letter-spacing: 0.02em;
   position: relative;
@@ -475,8 +475,8 @@ button:disabled {
   background: var(--compass);
   color: var(--ink);
   font-weight: 600;
-  font-size: 13px;
-  padding: 9px 18px;
+  font-size: 15px;
+  padding: 10px 20px;
   box-shadow: 0 2px 10px -2px rgba(15, 110, 92, 0.4);
 }
 
@@ -488,8 +488,8 @@ button:disabled {
   background: transparent;
   color: var(--parchment);
   border: 1px solid var(--line-strong);
-  font-size: 13px;
-  padding: 8px 17px;
+  font-size: 15px;
+  padding: 9px 18px;
 }
 
 .btn-ghost:hover:not(:disabled) {
@@ -502,8 +502,8 @@ button:disabled {
   background: rgba(30, 26, 20, 0.06);
   color: var(--parchment);
   border: 1px solid var(--line-strong);
-  font-size: 11px;
-  padding: 4px 10px;
+  font-size: 13px;
+  padding: 5px 12px;
 }
 
 .btn-mini:hover:not(:disabled) {
@@ -780,7 +780,7 @@ button:disabled {
 
 .field>span {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 17px;
   color: var(--mist);
   letter-spacing: 0.05em;
   text-transform: uppercase;
@@ -916,7 +916,7 @@ textarea::placeholder {
 }
 
 .title-block h1 {
-  font-size: 36px;
+  font-size: 40px;
   letter-spacing: -0.01em;
 }
 
@@ -925,7 +925,7 @@ textarea::placeholder {
   gap: 18px;
   margin-top: 8px;
   font-family: var(--font-mono);
-  font-size: 12px;
+  font-size: 14px;
   color: var(--mist);
   flex-wrap: wrap;
 }
@@ -961,7 +961,7 @@ textarea::placeholder {
 
 .stat-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--mist);
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -969,7 +969,7 @@ textarea::placeholder {
 
 .stat-value {
   font-family: var(--font-display);
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--parchment);
   white-space: nowrap;
@@ -1119,7 +1119,7 @@ textarea::placeholder {
 
 .ms-index {
   font-family: var(--font-mono);
-  font-size: 22px;
+  font-size: 24px;
   font-weight: 500;
   color: var(--brass);
   line-height: 1;
@@ -1132,22 +1132,22 @@ textarea::placeholder {
 }
 
 .ms-title h3 {
-  font-size: 17px;
+  font-size: 19px;
   margin-bottom: 4px;
 }
 
 .ms-type {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--mist);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
 .ms-status {
-  font-size: 11px;
+  font-size: 13px;
   font-family: var(--font-mono);
-  padding: 3px 8px;
+  padding: 4px 10px;
   border-radius: 20px;
   background: rgba(30, 26, 20, 0.06);
   color: var(--parchment-dim);
@@ -1241,7 +1241,7 @@ textarea::placeholder {
 }
 
 .task-title {
-  font-size: 13px;
+  font-size: 15px;
   color: var(--parchment);
 }
 
@@ -1253,7 +1253,7 @@ textarea::placeholder {
 .task-tags em {
   font-style: normal;
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 12px;
   color: var(--mist);
   letter-spacing: 0.03em;
 }
@@ -1355,78 +1355,22 @@ textarea::placeholder {
   color: var(--brass);
 }
 
-/* 上传验收区 */
-.upload-zone {
-  border-top: 1px solid var(--line);
-  padding-top: 14px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.upload-row {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
+/* 上传输入（任务提交框内可见的文件选择） */
 .upload-input {
-  position: absolute;
-  width: 1px;
-  height: 1px;
-  opacity: 0;
-  overflow: hidden;
-}
-
-.upload-label {
-  flex: 1;
   background: var(--ink);
-  border: 1px dashed var(--line-strong);
+  border: 1px solid var(--line-strong);
   border-radius: var(--radius);
-  padding: 7px 11px;
-  font-size: 12px;
-  color: var(--mist);
+  color: var(--parchment);
+  font-family: var(--font-body);
+  font-size: 13px;
+  padding: 6px 10px;
   cursor: pointer;
-  font-family: var(--font-mono);
-  transition: border-color 0.15s, color 0.15s;
 }
 
-.upload-label:hover {
+.upload-input:focus {
+  outline: none;
   border-color: var(--signal);
-  color: var(--signal);
-}
-
-.upload-result {
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: var(--radius);
-  font-size: 12px;
-}
-
-.upload-result.pass {
-  background: rgba(45, 125, 70, 0.1);
-  color: var(--pass);
-  border-left: 2px solid var(--pass);
-}
-
-.upload-result.fail {
-  background: rgba(196, 69, 54, 0.1);
-  color: var(--fail);
-  border-left: 2px solid var(--fail);
-}
-
-.result-icon {
-  font-weight: 700;
-  font-size: 14px;
-}
-
-.upload-result ul {
-  margin: 6px 0 0;
-  padding-left: 16px;
-  font-size: 11px;
-  color: var(--parchment-dim);
+  box-shadow: 0 0 0 3px rgba(14, 116, 144, 0.14);
 }
 
 /* 通知面板 */
@@ -2099,7 +2043,7 @@ textarea::placeholder {
   display: flex;
   align-items: center;
   gap: 8px;
-  font-size: 11px;
+  font-size: 20px;
   margin-top: 8px;
 }
 
@@ -2419,8 +2363,7 @@ textarea::placeholder {
 /* 可访问性 */
 button:focus-visible,
 input:focus-visible,
-textarea:focus-visible,
-.upload-label:focus-visible {
+textarea:focus-visible {
   outline: 2px solid var(--signal);
   outline-offset: 2px;
 }
@@ -2434,4 +2377,306 @@ textarea:focus-visible,
     transition: none !important;
     animation: none !important;
   }
+}
+
+/* ============ 左侧栏：收缩 + 拖拽宽度 ============ */
+.app-shell.rail-collapsed {
+  grid-template-columns: 44px 1fr;
+}
+
+.compass-rail {
+  position: relative;
+}
+
+.compass-rail.collapsed {
+  padding: 26px 10px;
+  width: 44px;
+  min-width: 44px;
+  overflow: hidden;
+}
+
+/* 展开态：右上角小箭头按钮 */
+.rail-toggle {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 26px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--graph);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--parchment-dim);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.rail-toggle:hover {
+  background: var(--compass);
+  color: var(--ink);
+  border-color: var(--compass);
+}
+
+/* 收起态：居中展开按钮 */
+.rail-toggle-collapsed {
+  position: absolute;
+  top: 14px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--graph);
+  border: 1px solid var(--line-strong);
+  border-radius: 50%;
+  color: var(--compass);
+  cursor: pointer;
+  z-index: 5;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.rail-toggle-collapsed:hover {
+  background: var(--compass);
+  color: var(--ink);
+  border-color: var(--compass);
+}
+
+/* 拖拽分隔条 */
+.rail-resizer {
+  position: absolute;
+  top: 0;
+  right: -3px;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 4;
+  background: transparent;
+  transition: background 0.15s;
+}
+
+.rail-resizer:hover {
+  background: rgba(15, 110, 92, 0.25);
+}
+
+body.rail-resizing {
+  cursor: col-resize !important;
+  user-select: none;
+}
+
+body.rail-resizing * {
+  cursor: col-resize !important;
+  user-select: none !important;
+}
+
+/* 收起态隐藏内层内容 */
+.compass-rail.collapsed .rail-inner {
+  display: none;
+}
+
+/* ============ 任务行：分离主行与扩展区 ============ */
+.task-item {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.task-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* 提交审阅文件框 */
+.task-submit-box {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  background: rgba(14, 116, 144, 0.06);
+  border: 1px dashed var(--line-signal);
+  border-radius: var(--radius);
+  margin-top: 4px;
+  flex-wrap: wrap;
+}
+
+.task-submit-box .upload-input {
+  flex: 1 1 200px;
+  min-width: 160px;
+}
+
+/* 提交产物展示（所有成员可见） */
+.task-submission {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  background: rgba(184, 114, 30, 0.06);
+  border-left: 2px solid var(--brass);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--parchment-dim);
+  flex-wrap: wrap;
+}
+
+.ts-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--mist);
+}
+
+.ts-file {
+  color: var(--parchment);
+  font-weight: 500;
+  word-break: break-all;
+}
+
+/* 审阅区（队长可见） */
+.task-review-box {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(15, 110, 92, 0.05);
+  border: 1px solid rgba(15, 110, 92, 0.25);
+  border-radius: var(--radius);
+  margin-top: 4px;
+}
+
+.tr-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--compass);
+  letter-spacing: 0.05em;
+}
+
+.task-review-box .ri-comment {
+  margin-bottom: 0;
+}
+
+.tr-actions {
+  display: flex;
+  gap: 8px;
+}
+
+/* 审阅结果反馈 */
+.task-review-feedback {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: rgba(196, 69, 54, 0.08);
+  border-left: 2px solid var(--fail);
+  border-radius: var(--radius);
+  font-size: 13px;
+  color: var(--fail);
+  flex-wrap: wrap;
+}
+
+.task-review-feedback.approved {
+  background: rgba(45, 125, 70, 0.08);
+  border-left-color: var(--pass);
+  color: var(--pass);
+}
+
+.rf-label {
+  font-weight: 600;
+  font-family: var(--font-mono);
+  font-size: 12px;
+}
+
+.rf-text {
+  color: var(--parchment);
+  word-break: break-all;
+}
+
+/* 审阅状态徽章 */
+.rv-badge {
+  border: 1px solid;
+  padding: 1px 6px;
+  border-radius: 8px;
+  font-weight: 500;
+}
+
+.rv-badge.rv-pending {
+  color: var(--brass);
+  border-color: var(--brass);
+  background: rgba(184, 114, 30, 0.08);
+}
+
+.rv-badge.rv-approved {
+  color: var(--pass);
+  border-color: var(--pass);
+  background: rgba(45, 125, 70, 0.08);
+}
+
+.rv-badge.rv-rejected {
+  color: var(--fail);
+  border-color: var(--fail);
+  background: rgba(196, 69, 54, 0.08);
+}
+
+/* 审阅按钮（在任务审阅框中） */
+.btn-mini.btn-approve {
+  border: 1px solid var(--pass);
+  color: var(--pass);
+  background: transparent;
+}
+
+.btn-mini.btn-approve:hover:not(:disabled) {
+  background: rgba(45, 125, 70, 0.15);
+  color: var(--pass);
+}
+
+.btn-mini.btn-reject {
+  border: 1px solid var(--fail);
+  color: var(--fail);
+  background: transparent;
+}
+
+.btn-mini.btn-reject:hover:not(:disabled) {
+  background: rgba(196, 69, 54, 0.15);
+  color: var(--fail);
+}
+
+/* ============ 项目卡片、成员卡片字体增补 ============ */
+.project-card {
+  font-size: 15px;
+}
+
+.member-card .mc-head h3 {
+  font-size: 17px;
+}
+
+.mc-stats {
+  font-size: 13px;
+}
+
+.mc-stats strong {
+  font-size: 15px;
+}
+
+/* ============ 通知日志字体增补 ============ */
+.notify-item {
+  font-size: 14px;
+}
+
+.notify-type {
+  font-size: 12px;
+}
+
+.notify-time {
+  font-size: 12px;
+}
+
+/* ============ 通用辅助：扩大正文行距 ============ */
+.board-view,
+.members-view,
+.projects-view,
+.create-view {
+  font-size: 16px;
 }

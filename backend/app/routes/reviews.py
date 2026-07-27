@@ -105,7 +105,5 @@ def download_submission(task_id: int, authorization: str | None = Header(None)):
     deps.require_member(task["project_id"], user)
     if not task.get("submission_path"):
         raise HTTPException(404, "无提交产物")
-    pm = models.get_project_member(task["project_id"], user["id"])
-    if pm["role"] != "leader" and task["assignee_id"] != user["id"]:
-        raise HTTPException(403, "无权下载")
+    # 所有项目成员均可下载查看（队长 + 队员）
     return FileResponse(task["submission_path"], filename=task["submission_filename"])

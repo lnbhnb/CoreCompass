@@ -2,10 +2,11 @@ function taskAssign(parent, task) {
   return {
     reviewComment: '',
     submitting: false,
+    showSubmitBox: false,
 
     async submitFile(fileInput) {
-      const file = fileInput.files[0];
-      if (!file) return;
+      const file = fileInput && fileInput.files && fileInput.files[0];
+      if (!file) { alert('请先选择文件'); return; }
       this.submitting = true;
       try {
         const fd = new FormData();
@@ -15,7 +16,8 @@ function taskAssign(parent, task) {
           headers: parent.authHeaders(),
           body: fd
         });
-        if (!r.ok) { alert((await r.json()).detail || '提交失败'); return; }
+        if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || '提交失败'); return; }
+        this.showSubmitBox = false;
         await parent.loadProject(parent.project.id);
       } finally {
         this.submitting = false;
@@ -28,13 +30,13 @@ function taskAssign(parent, task) {
         headers: { 'Content-Type': 'application/json', ...parent.authHeaders() },
         body: JSON.stringify({ decision, comment: this.reviewComment })
       });
-      if (!r.ok) { alert('审阅失败'); return; }
+      if (!r.ok) { const e = await r.json().catch(() => ({})); alert(e.detail || '审阅失败'); return; }
       this.reviewComment = '';
       await parent.loadProject(parent.project.id);
     },
 
-    downloadUrl() {
-      return `/api/tasks/${task.id}/submission`;
+    download() {
+      return parent.downloadSubmission(task.id, task.submission_filename);
     },
 
     reviewStatusLabel(status) {
