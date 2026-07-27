@@ -4,7 +4,7 @@
 
 **CoreCompass** 是一个面向高校学生团队的**规则护栏型智能体**，采用"确定性状态机 + LLM"的混合架构，把通用 AI 聊天工具"只附和不把关"的痛点转化为可量化的进度约束，让学生团队的大课题从"无从下手"走向"可控交付"。
 
-> **定位说明**：CoreCompass 是一个**智能体**——LLM 在初始拆解、重规划提案、other 类型产物校验三处承担决策，状态机+铁律承担执行，APScheduler 定时巡检承担感知，飞书 webhook 承担反馈。与"纯 LLM Agent"不同，我们用确定性代码约束 LLM 的行为边界，所有状态转移、产物校验、任务锁定均由代码强制约束，避免 LLM 幻觉影响项目状态。
+> **定位说明**：CoreCompass 是一个**智能体**——LLM 在初始拆解、重规划提案两处承担决策，状态机+铁律承担执行，APScheduler 定时巡检承担感知，飞书 webhook 承担反馈。与"纯 LLM Agent"不同，我们用确定性代码约束 LLM 的行为边界，所有状态转移、任务锁定均由代码强制约束，避免 LLM 幻觉影响项目状态。
 
 ## 它解决什么问题？
 
@@ -12,33 +12,24 @@
 
 | 困境 | 现状 | CoreCompass 的解法 |
 |---|---|---|
-| **AI 盲信** | ChatGPT/豆包顺着用户说话，不验证是否真的产出 | **硬验收**：强制校验真实产物，不通过就锁进度 |
+| **AI 盲信** | ChatGPT/豆包顺着用户说话，不验证是否真的产出 | **任务审阅**：队员提交产物 → 队长通过/打回，每步有据可查 |
 | **不会重规划** | 延期只会加夜班，不懂砍需求 | **动态重算**：算产能缺口 + LLM 砍需求提案 + 铁律校验 |
 | **被动协作** | 所有工具靠主动查询，没人主动催 | **主动打扰**：定时扫描逾期 + 飞书 webhook 推送 |
 
 ## 三大突出点
 
-### 突出点① 硬验收（反"AI 盲信"）
+### 突出点① 任务审阅 + 产物质量保障（反"AI 盲信"）
 
-每个里程碑声明 `expected_artifact_type`（sql / md / code / json / yaml），上传产物后由对应校验器做**结构化校验**，不通过则里程碑 `locked`，无法进入下一阶段。
+里程碑完成不再靠"上传一个文件自动校验通过"，而是由**任务审阅流程驱动**：里程碑下所有任务全部完成（done），里程碑自动通过。
+
+每个里程碑声明 `expected_artifact_type`（sql / md / code / json / yaml），队员在任务中提交产物时，系统内置的 5 类校验器可对产物做结构化检查。校验器作为工具函数保留，供任务审阅时参考：
 
 - **SQL**：≥2 表、含 PRIMARY KEY、含 FOREIGN KEY、每表必须有列定义（拒绝空壳表）
 - **Markdown**：≥500 字、含 ≥3 H2 标题、含"需求/功能/用户"关键词、去重率 < 40%（拒绝凑字数）
 - **Code**：AST 解析、含 ≥2 函数/类定义、函数体非空、源码 ≥50 字符
 - **JSON/YAML**：语法可解析、顶层为对象、必含 `name` 和 `endpoints`
 
-> Notion、语雀只存文档不校验；通用 LLM 只对话不把关。CoreCompass 强制校验真实产物。
-
-#### 与 CI / lint 的区别
-
-| 维度 | GitHub Actions / lint | **CoreCompass 硬验收** |
-|---|---|---|
-| 校验对象 | 代码本身（语法、单测、风格） | 项目产物（需求文档、数据库 schema、API 设计稿） |
-| 触发时机 | commit / push | 里程碑节点（与项目阶段绑定） |
-| 失败后果 | 阻塞合并请求 | **状态机锁定**，无法进入下一阶段 |
-| 校验维度 | 代码质量 | 产物结构完整性（SQL 表数/外键、MD 字数/标题层级） |
-
-CoreCompass 不替代 CI，而是在 CI 之前的"项目产物阶段"做门禁，与 CI 形成互补。
+> 不再是"上传一个文件校验通过→里程碑 done"，而是队长审阅通过 + 所有任务完成 → 里程碑完成。校验器作为辅助工具，帮助队长判断产物质量。
 
 ### 突出点② 产能缺口检测（规则驱动，LLM 辅助）
 
@@ -79,10 +70,10 @@ APScheduler 定时扫描逾期任务，按项目聚合后通过飞书 webhook **
 | 角色权限 | 队长（建项目/分配任务/审阅/生成邀请码，亦可被分配任务）、队员（认领/提交产物/看进度）分工协作 |
 | 多项目管理 | 一个用户可参与多个项目，按 `project_members` 关联 |
 | 邀请码加入 | 队长生成 6 位邀请码（7 天有效），队员注册后输码加入项目 |
-| 任务审阅 | 队员/队长提交产物 → 队长审阅（通过/打回，含队长自审）→ 通知，与里程碑自动验收独立并行 |
+| 任务审阅 | 队员/队长提交产物 → 队长审阅（通过/打回，含队长自审）→ 任务 done；所有任务 done → 里程碑通过 |
 | 成员进度 | 队长看全队完成率 + 待审阅队列；队员只看自己 |
 
-> 任务审阅管"人有没有认真做"，里程碑校验管"产物结构合不合规"，两者互不阻塞。
+> 任务审阅管"人有没有认真做"，里程碑完成由任务完成驱动——所有任务都做完了，这个阶段才算过。
 
 ## 交互体验
 
@@ -103,9 +94,9 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
 | Agent 能力 | CoreCompass 实现 | 代码位置 |
 |---|---|---|
 | **感知（Perception）** | APScheduler 定时巡检任务逾期、读取项目产能数据 | [notify_service.py](backend/app/services/notify_service.py) |
-| **决策（Decision）** | LLM 在 3 处参与：初始拆解、重规划提案、other 类型产物校验 | [llm/client.py](backend/app/llm/client.py) |
-| **工具调用（Tool Use）** | 5 类校验器、状态机、产能计算、知识库匹配 | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
-| **执行（Action）** | 强制锁定里程碑、强制砍 optional 任务、状态转移 | [replan_service.py](backend/app/services/replan_service.py) |
+| **决策（Decision）** | LLM 在 2 处参与：初始拆解、重规划提案 | [llm/client.py](backend/app/llm/client.py) |
+| **工具调用（Tool Use）** | 状态机、产能计算、知识库匹配、5 类校验器（辅助用） | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
+| **执行（Action）** | 强制砍 optional 任务、状态转移、任务审阅流转 | [replan_service.py](backend/app/services/replan_service.py) |
 | **反馈（Feedback）** | 飞书 webhook 推送、看板刷新、通知日志 | [notify_service.py](backend/app/services/notify_service.py) |
 | **知识库（Knowledge）** | SDLC 模型 / 开源项目里程碑 / 比赛日程，关键词匹配 + few-shot 注入 Prompt | [knowledge_service.py](backend/app/services/knowledge_service.py) |
 | **持久状态（Memory）** | SQLite 存储项目/任务/里程碑/校验记录/通知日志 | [models.py](backend/app/models.py) |
@@ -136,7 +127,6 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
     ↓ HTTP
 FastAPI（路由 + 中间件）
     ├── 项目服务（创建 + LLM 初始拆解）
-    ├── 校验服务（5 类文件结构化校验）
     ├── 重规划服务（规则 + LLM + 铁律）
     ├── 通知服务（飞书 webhook + APScheduler）
     └── 状态机（任务/里程碑/项目确定性转移）
@@ -214,7 +204,7 @@ uvicorn app.main:app --reload --port 8000
 
 1. **创建项目**：注册队长 → 填入课题、截止日期、团队人数 → Agent 生成里程碑和任务
 2. **团队协作**：成员进度页生成邀请码 → 队员注册输码加入 → 分配/认领/提交/审阅任务（队长亦可被分配任务，提交后需自审通过）
-3. **硬验收**：在任务卡片提交产物 → 队长审阅通过/打回，所有成员可下载查看
+3. **任务审阅**：在任务卡片提交产物 → 队长审阅通过/打回 → 所有任务完成 → 里程碑通过，所有成员可下载查看
 4. **动态重算**：任务逾期自动进入 overdue → 点"触发重规划" → 确认应用 → 看板刷新
 5. **主动打扰**：点"测试推送飞书" → 飞书群收到 Agent 消息
 
@@ -231,10 +221,9 @@ uvicorn app.main:app --reload --port 8000
 **Agent 行为：**
 1. 匹配知识库：SDLC 混合模型 + Flask/Django 项目里程碑（课题含"web/交易"）
 2. 生成 4-6 里程碑：需求分析 → 数据库设计 → 核心实现 → 测试部署
-3. 每个里程碑声明验收类型（md / sql / code）
-4. 你上传空 SQL → 红色拒绝，里程碑 locked
-5. 你上传合规 SQL（含表+主键+外键）→ 绿色通过，解锁下一阶段
-6. 点"触发重规划" → Agent 砍掉 optional 任务，core 保留
+3. 每个里程碑声明产物类型（md / sql / code），队员逐项完成并提交审阅
+4. 队长审阅通过所有任务 → 里程碑完成，进入下一阶段
+5. 点"触发重规划" → Agent 砍掉 optional 任务，core 保留
 7. 点"测试推送飞书" → 飞书群收到 Agent 催办消息
 
 ### 范例 2：微信小程序（跨端项目）
@@ -267,9 +256,9 @@ uvicorn app.main:app --reload --port 8000
 ### 日常使用流程
 
 ```
-创建项目 → 看到拆解计划 → 开始做任务 → 上传产物验收
+创建项目 → 看到拆解计划 → 开始做任务 → 提交产物审阅
   → 进度偏航？ → 触发重规划 → Agent 砍需求 → 继续
-  → 飞书群定时收到 Agent 催办 → 完成所有里程碑 → 项目交付
+  → 飞书群定时收到 Agent 催办 → 所有任务完成 → 里程碑通过 → 项目交付
 ```
 
 ## 知识库
@@ -293,7 +282,7 @@ cd backend
 pytest -v
 ```
 
-93 个测试全绿，覆盖：状态机转换、5 类文件校验、产能计算、重规划铁律、飞书推送、LLM JSON 解析、端到端三段式闭环、边界用例、知识库匹配、用户认证、权限校验、邀请码防爆破、token 过期、任务审阅、SQL/MD/Code 反凑数校验、队长可被分配任务。
+92 个测试全绿，覆盖：状态机转换、5 类文件校验函数、产能计算、重规划铁律、飞书推送、LLM JSON 解析、边界用例、知识库匹配、用户认证、权限校验、邀请码防爆破、token 过期、任务审阅、SQL/MD/Code 反凑数校验、队长可被分配任务。
 
 ## 项目结构
 
@@ -309,10 +298,9 @@ CoreCompass/
 │   │   ├── models.py            # 数据访问层（项目/任务/里程碑/用户/成员/邀请码/审阅）
 │   │   ├── state_machine.py     # 任务/里程碑/项目/审阅 状态机
 │   │   ├── deps.py              # 认证与权限依赖（require_member/require_leader）
-│   │   ├── routes/              # 8 个路由模块
+│   │   ├── routes/              # 7 个路由模块
 │   │   │   ├── __init__.py
 │   │   │   ├── projects.py      # 项目 CRUD + 创建时拆解
-│   │   │   ├── validate.py      # 硬验收
 │   │   │   ├── replan.py        # 动态重算
 │   │   │   ├── notify.py        # 主动打扰
 │   │   │   ├── tasks.py         # 任务状态变更 + 手动增删
@@ -322,7 +310,7 @@ CoreCompass/
 │   │   ├── services/            # 8 个业务服务
 │   │   │   ├── __init__.py
 │   │   │   ├── project_service.py   # 创建时 LLM 拆解
-│   │   │   ├── validate_service.py  # 5 类产物校验器
+│   │   │   ├── validate_service.py  # 5 类校验器（辅助函数，不驱动里程碑）
 │   │   │   ├── replan_service.py    # 产能缺口 + LLM 提案 + 铁律
 │   │   │   ├── notify_service.py    # 飞书 webhook + APScheduler
 │   │   │   ├── auth_service.py      # PBKDF2 哈希 + token
@@ -366,14 +354,13 @@ CoreCompass 与主流工具的差异：
 
 | 维度 | Notion / 语雀 | 飞书 / 钉钉任务 | GitHub Projects | GitHub Actions / CI | **CoreCompass** |
 |---|---|---|---|---|---|
-| 校验产物结构 | ❌ 只存文档 | ❌ 只跟踪任务 | ❌ 只看 issue | ✅ 但只校验代码 | ✅ 跨 5 类产物（sql/md/code/json/yaml） |
-| 校验失败锁进度 | ❌ | ❌ | ❌ | ❌（仅阻塞合并） | ✅ 状态机锁定下一阶段 |
+| 任务审阅驱动进度 | ❌ | ❌ | ❌ | ❌ | ✅ 队长审阅 + 任务全部 done → 里程碑通过 |
 | 产能缺口检测 | ❌ | ❌ | ❌ | ❌ | ✅ 规则层算缺口 + LLM 辅助建议 + 铁律保底 |
 | 主动巡检 + 推送 | 部分（手动） | 部分（机器人需触发） | ❌ | ❌ | ✅ APScheduler + 飞书 webhook |
 | 适配学生竞赛场景 | 通用 | 通用 | 偏工程 | 偏工程 | ✅ 知识库注入赛程 / SDLC / 相似项目 |
 | 校园团队效率系数 | ❌ | ❌ | ❌ | ❌ | ✅ 0.6 校准系数 |
 
-**一句话定位**：CoreCompass 不是 Notion / 飞书 / GitHub Actions 的替代品，而是把它们都没做好的"产物结构门禁 + 进度偏航重规划"环节补齐，专注校园竞赛场景。
+**一句话定位**：CoreCompass 不是 Notion / 飞书 / GitHub Actions 的替代品，而是把它们都没做好的"任务审阅驱动进度 + 进度偏航重规划"环节补齐，专注校园竞赛场景。
 
 ## 离线降级（Demo 兜底）
 
@@ -400,20 +387,20 @@ CoreCompass 与主流工具的差异：
 
 ## 协作流程的语义边界
 
-任务审阅与里程碑校验是**两条独立并行**的流水线，互不阻塞：
+里程碑完成由任务审阅流程驱动，不再依赖单独的文件校验：
 
-| 流水线 | 责任人 | 关注点 | 状态机 |
+| 流程 | 责任人 | 关注点 | 结果 |
 |---|---|---|---|
 | 任务审阅 | 队长 | 队员**有没有认真做**（人审） | `pending_review → approved / rejected` |
-| 里程碑校验 | 系统 | 产物**结构合不合规**（机审） | `planned → done / locked` |
+| 里程碑推进 | 系统 | 所有任务 done → 里程碑 done | `planned → in_progress → done` |
 
-**为什么独立**：人审通过不代表产物结构合规（队长可能放水），机审通过也不代表队员认真做了（可能凑数）。两条线交叉验证，降低单点失守风险。
+> 队长审阅通过不代表任务完美——但这是学生团队协作的现实：队长签字确认 = 这项任务可以翻篇。所有任务翻篇，里程碑自然通过。
 
 ## 落地价值
 
 - **学生侧：** 零安装（浏览器访问），5 分钟上手
 - **教师侧：** 可作为课程设计过程管理工具，查看团队真实进度
-- **扩展性：** 校验器可插拔（新增类型只需实现 `validate_xxx`）；LLM 可替换（任何兼容 OpenAI 协议的模型）
+- **扩展性：** 校验器可插拔（新增类型只需实现 `validate_xxx`）；LLM 可替换（任何兼容 OpenAI 协议的模型）；里程碑通过逻辑可由任务状态自动驱动
 - **成本：** SQLite 单文件、DeepSeek 按调用计费（一次 Demo 约 0.005 元）、飞书 webhook 免费
 
 ## License
