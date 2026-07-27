@@ -1,5 +1,7 @@
+from datetime import datetime
+
 from app import models
-from app.services import auth_service
+from app.services import auth_service, notify_service
 from app.state_machine import MilestoneStatus, ProjectStatus
 
 
@@ -73,8 +75,11 @@ def submit_task(task_id, filename, filepath, member_token, project_id):
     if task["assignee_id"] != member["id"]:
         raise PermissionError("只有任务负责人能提交")
     models.submit_task(task_id, filename, filepath)
-    _notify_leader(project_id, "task_submit",
-                   f"{member['display_name']} 提交了任务 {task['title']}，待审阅")
+    # 提交后自动推进到 doing（如果还是 planned）
+    if task["status"] == "planned":
+        models.update_task_status(task_id, "doing")
+    content = f"{member['display_name']} 提交了任务「{task['title']}」，待审阅"
+    _notify(project_id, "task_submit", content)
 
 
 def review_task(task_id, decision, leader_token, project_id, comment=None):
@@ -86,29 +91,30 @@ def review_task(task_id, decision, leader_token, project_id, comment=None):
     if task.get("review_status") != "pending_review":
         raise PermissionError("当前任务不在待审阅状态")
     models.review_task(task_id, decision, leader["id"], comment)
-    # 通过则自动标记任务为已完成
-    if decision == "approved" and task["status"] != "done":
-        from datetime import datetime
-        models.update_task_status(task_id, "done", datetime.now().isoformat())
-        # 检查该里程碑是否全部完成，推进里程碑→done
+    # 通过 → 任务 done + 推进里程碑
+    if decision == "approved":
+        if task["status"] != "done":
+            models.update_task_status(task_id, "done", datetime.now().isoformat())
         advance_milestone_if_complete(project_id, task["milestone_id"])
-    if task.get("assignee_id"):
-        assignee = models.get_user(task["assignee_id"])
-        if assignee:
-            verb = "已通过" if decision == "approved" else "需修改"
-            content = f"任务 {task['title']} {verb}"
-            if comment:
-                content += f"：{comment}"
-            # 复用现有 insert_notification(pid, type, content, status, response) 签名
-            models.insert_notification(project_id, "task_review", content, "sent", None)
+    # 打回 → 任务回退到 doing（队员需修改后重新提交）
+    else:
+        if task["status"] == "done":
+            models.update_task_status(task_id, "doing")
+    # 通知：写 DB + 推飞书
+    verb = "已通过" if decision == "approved" else "需修改"
+    content = f"任务「{task['title']}」{verb}"
+    if comment:
+        content += f"：{comment}"
+    _notify(project_id, "task_review", content)
 
 
-def _notify_leader(project_id, ntype, content):
-    members = models.list_project_members(project_id)
-    for m in members:
-        if m["role"] == "leader":
-            models.insert_notification(project_id, ntype, content, "sent", None)
-            break
+def _notify(project_id, ntype, content):
+    """通知：写 DB + 推送飞书（webhook 未配则仅写 DB）。"""
+    models.insert_notification(project_id, ntype, content, "sent", None)
+    try:
+        notify_service.send_feishu(content, project_id=project_id, msg_type=ntype)
+    except Exception:
+        pass  # 飞书不可达不影响主流程
 
 
 def advance_milestone_if_complete(project_id: int, milestone_id: int):
