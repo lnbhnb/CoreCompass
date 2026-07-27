@@ -107,7 +107,7 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
 | **工具调用（Tool Use）** | 5 类校验器、状态机、产能计算、知识库匹配 | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
 | **执行（Action）** | 强制锁定里程碑、强制砍 optional 任务、状态转移 | [replan_service.py](backend/app/services/replan_service.py) |
 | **反馈（Feedback）** | 飞书 webhook 推送、看板刷新、通知日志 | [notify_service.py](backend/app/services/notify_service.py) |
-| **知识库（Knowledge）** | SDLC 模型 / 开源项目里程碑 / 比赛日程，few-shot 注入 Prompt | [knowledge_service.py](backend/app/services/knowledge_service.py) |
+| **知识库（Knowledge）** | SDLC 模型 / 开源项目里程碑 / 比赛日程，关键词匹配 + few-shot 注入 Prompt | [knowledge_service.py](backend/app/services/knowledge_service.py) |
 | **持久状态（Memory）** | SQLite 存储项目/任务/里程碑/校验记录/通知日志 | [models.py](backend/app/models.py) |
 | **降级兜底（Fallback）** | LLM 失败时用预设模板 + 规则层独立完成 | [llm/client.py](backend/app/llm/client.py) |
 
@@ -276,11 +276,13 @@ uvicorn app.main:app --reload --port 8000
 
 项目内置结构化知识库（`knowledge_base/`），为 LLM 拆解提供真实素材支撑：
 
-| 类别 | 内容 | 来源 |
+| 类别 | 内容 | 文件 |
 |---|---|---|
-| SDLC 模型 | 瀑布 / 敏捷 / 混合（校园推荐） | IEEE 830 / Scrum Guide |
-| 开源项目里程碑 | Flask / FastAPI / Django / Taro | GitHub Milestones 公开数据 |
-| 比赛日程 | 挑战杯 / 互联网+ / 计算机设计 | 各比赛官网公开赛程 |
+| SDLC 模型 | 瀑布 / 敏捷 / 混合（校园推荐） | `sdlc/waterfall.md` / `agile.md` / `hybrid.md` |
+| 开源项目里程碑 | Flask / FastAPI / Django / Taro | `projects/flask.md` / `fastapi.md` / `django.md` / `taro.md` |
+| 比赛日程 | 挑战杯 / 互联网+ / 计算机设计 | `contests/challenge-cup.md` / `internet-plus.md` / `computer-design.md` |
+
+素材索引文件 `index.json` 按关键词映射，支持精确/模糊/兜底三级匹配策略。
 
 **工作机制：** 创建项目时，Agent 按课题关键词匹配相关素材，注入 LLM Prompt 作为 few-shot 例子。看板顶部会显示"本次拆解参考了 XXX"，让拆解过程可追溯。
 
@@ -299,47 +301,63 @@ pytest -v
 CoreCompass/
 ├── backend/
 │   ├── app/
+│   │   ├── __init__.py
 │   │   ├── main.py              # FastAPI 入口
 │   │   ├── config.py            # 环境配置
 │   │   ├── db.py                # SQLite 初始化 + 字段迁移
+│   │   ├── schema.sql           # 数据库 DDL（9 张表）
 │   │   ├── models.py            # 数据访问层（项目/任务/里程碑/用户/成员/邀请码/审阅）
 │   │   ├── state_machine.py     # 任务/里程碑/项目/审阅 状态机
 │   │   ├── deps.py              # 认证与权限依赖（require_member/require_leader）
 │   │   ├── routes/              # 8 个路由模块
+│   │   │   ├── __init__.py
 │   │   │   ├── projects.py      # 项目 CRUD + 创建时拆解
 │   │   │   ├── validate.py      # 硬验收
 │   │   │   ├── replan.py        # 动态重算
 │   │   │   ├── notify.py        # 主动打扰
-│   │   │   ├── tasks.py         # 任务打卡（带鉴权）
+│   │   │   ├── tasks.py         # 任务状态变更 + 手动增删
 │   │   │   ├── auth.py          # 注册/登录/登出/加入项目
 │   │   │   ├── reviews.py       # 任务分配/认领/提交/审阅
 │   │   │   └── members.py       # 邀请码/成员列表/进度统计
-│   │   ├── services/            # 7 个业务服务
-│   │   │   ├── project_service.py
-│   │   │   ├── validate_service.py
-│   │   │   ├── replan_service.py
-│   │   │   ├── notify_service.py
-│   │   │   ├── auth_service.py  # PBKDF2 哈希 + token
-│   │   │   ├── member_service.py# 邀请码 + 进度统计
-│   │   │   └── review_service.py# 任务审阅流转
-│   │   └── llm/                 # LLM 客户端 + Prompts
-│   ├── tests/                   # 93 个测试
+│   │   ├── services/            # 8 个业务服务
+│   │   │   ├── __init__.py
+│   │   │   ├── project_service.py   # 创建时 LLM 拆解
+│   │   │   ├── validate_service.py  # 5 类产物校验器
+│   │   │   ├── replan_service.py    # 产能缺口 + LLM 提案 + 铁律
+│   │   │   ├── notify_service.py    # 飞书 webhook + APScheduler
+│   │   │   ├── auth_service.py      # PBKDF2 哈希 + token
+│   │   │   ├── member_service.py    # 邀请码 + 进度统计
+│   │   │   ├── review_service.py    # 任务审阅流转
+│   │   │   └── knowledge_service.py # 知识库匹配 + 上下文注入
+│   │   └── llm/                 # LLM 客户端 + Prompt 模板
+│   │       ├── __init__.py
+│   │       ├── client.py        # DeepSeek 调用 + JSON 修复 + fallback
+│   │       └── prompts.py       # 4 类 Prompt + 2 个 fallback 模板
+│   ├── tests/                   # 93 个测试（17 个测试文件）
+│   ├── data/                    # 运行时数据（SQLite DB + 上传产物）
 │   └── requirements.txt
 ├── frontend/
 │   ├── index.html               # 单页应用（航海罗盘仪表风格）
 │   └── static/
 │       ├── app.js               # 主组件（hash 路由 + 鉴权 + 侧栏收缩/拖拽）
-│       ├── style.css
+│       ├── style.css            # 晨曦港湾风格
 │       └── components/          # 8 个 Alpine.js 组件
-│       ├── auth.js              # 登录/注册/加入
-│       ├── project-list.js      # 项目列表
-│       ├── project-create.js    # 创建项目
-│       ├── task-board.js        # 任务看板
-│       ├── task-assign.js       # 分配/认领/提交/审阅（支持队长被分配与自审）
-│       ├── member-progress.js   # 成员进度+邀请码
-│       ├── replan-modal.js      # 重规划弹窗
-│       └── notify-log.js        # 通知日志
-└── knowledge_base/              # 结构化知识库
+│           ├── auth.js          # 登录/注册
+│           ├── project-list.js  # 项目列表 + 加入
+│           ├── project-create.js# 创建项目
+│           ├── task-board.js    # 看板分组 + 状态标签
+│           ├── task-assign.js   # 提交产物 / 审阅操作
+│           ├── member-progress.js# 成员进度 + 邀请码 + 待审阅队列
+│           ├── replan-modal.js  # 重规划弹窗
+│           └── notify-log.js    # 通知日志 + 调度器状态
+├── knowledge_base/              # 结构化知识库
+│   ├── index.json               # 关键词索引
+│   ├── sdlc/                    # SDLC 模型（混合/敏捷/瀑布）
+│   ├── projects/                # 开源项目里程碑（Flask/FastAPI/Django/Taro）
+│   └── contests/                # 比赛日程（挑战杯/互联网+/计算机设计）
+├── test_samples/                # 验收测试样本文件（sql/md/py/js/ts/json/yaml）
+├── TEST_MANUAL.md               # 手动测试指南（覆盖 3 个 Demo 路径）
+└── README.md
 ```
 
 ## 创新点对比
