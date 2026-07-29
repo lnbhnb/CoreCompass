@@ -93,5 +93,5 @@ VALIDATORS = {
 }
 
 
-# 里程碑状态由任务审阅流程驱动（所有任务 done → 里程碑 done），
-# 不再通过单文件校验自动变更。以下校验函数保留供未来任务审阅时使用。
+# 校验器在队员提交产物时由 review_service._run_validation() 自动调用，
+# 结果写入 task 表的 validation_result / validation_reasons 字段，供队长审阅时参考。

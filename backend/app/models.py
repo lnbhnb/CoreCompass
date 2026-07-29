@@ -337,6 +337,14 @@ def submit_task(task_id, submission_filename, submission_path):
             (submission_filename, submission_path, task_id))
 
 
+def set_task_validation(task_id, result, reasons):
+    """写入产物自动校验结果。result: 'pass' / 'fail'，reasons: JSON 数组字符串。"""
+    with db.get_conn() as conn:
+        conn.execute(
+            "UPDATE tasks SET validation_result=?, validation_reasons=? WHERE id=?",
+            (result, reasons, task_id))
+
+
 def review_task(task_id, decision, reviewer_id, comment=None):
     """decision: 'approved' | 'rejected'"""
     from datetime import datetime

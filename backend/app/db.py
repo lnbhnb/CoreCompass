@@ -22,6 +22,9 @@ FIELD_MIGRATIONS = [
     "ALTER TABLE projects ADD COLUMN feishu_secret TEXT",
     # 通知分级（normal / warning / critical）
     "ALTER TABLE notifications ADD COLUMN notify_level TEXT NOT NULL DEFAULT 'normal'",
+    # 任务产物自动校验结果
+    "ALTER TABLE tasks ADD COLUMN validation_result TEXT",
+    "ALTER TABLE tasks ADD COLUMN validation_reasons TEXT",
 ]
 
 

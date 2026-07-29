@@ -435,6 +435,8 @@
                               x-text="'👤 ' + (members.find(m => m.id === t.assignee_id)?.display_name || '已分配')"></em>
                             <em class="rv-badge" :class="reviewStatusClass(t.review_status)" x-show="t.review_status"
                               x-text="reviewStatusLabel(t.review_status)"></em>
+                            <em class="val-badge pass" x-show="t.validation_result === 'pass'" x-cloak>✓ 校验通过</em>
+                            <em class="val-badge fail" x-show="t.validation_result === 'fail'" x-cloak>✗ 校验未通过</em>
                           </span>
                         </div>
                         <template x-if="t.status === 'planned' && !t.assignee_id && currentRole !== 'leader'">
@@ -477,6 +479,22 @@
                           <span class="ts-label">📄 提交产物：</span>
                           <span class="ts-file" x-text="t.submission_filename"></span>
                           <button class="btn-mini" @click="download()">下载查看</button>
+                        </div>
+                      </template>
+
+                      <!-- 自动校验结果（所有成员可见） -->
+                      <template x-if="t.validation_result">
+                        <div class="task-validation" :class="t.validation_result">
+                          <span class="val-head">
+                            <template x-if="t.validation_result === 'pass'">✅ 自动校验通过</template>
+                            <template x-if="t.validation_result === 'fail'">⚠️ 自动校验未通过</template>
+                            <template x-if="t.validation_result === 'error'">❌ 校验器异常</template>
+                          </span>
+                          <ul class="val-reasons" x-show="t.validation_reasons">
+                            <template x-for="r in JSON.parse(t.validation_reasons)" :key="r">
+                              <li x-text="r"></li>
+                            </template>
+                          </ul>
                         </div>
                       </template>
 

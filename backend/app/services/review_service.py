@@ -3,6 +3,11 @@ from datetime import datetime
 from app import models
 from app.services import auth_service, notify_service
 from app.state_machine import MilestoneStatus, ProjectStatus
+from app.services.validate_service import VALIDATORS
+import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def _user_from_token(token):
@@ -80,6 +85,38 @@ def submit_task(task_id, filename, filepath, member_token, project_id):
         models.update_task_status(task_id, "doing")
     content = f"{member['display_name']} 提交了任务「{task['title']}」，待审阅"
     _notify(project_id, "task_submit", content)
+    # 自动校验产物
+    _run_validation(task_id, filepath, task["milestone_id"])
+    return {"ok": True, "filename": filename}
+
+
+def _run_validation(task_id, filepath, milestone_id):
+    """根据里程碑声明的产物类型，自动跑对应校验器，结果写入 task 表。"""
+    ms = models.get_milestone(milestone_id)
+    if not ms:
+        return
+    artifact_type = (ms.get("expected_artifact_type") or "").lower()
+    validator = VALIDATORS.get(artifact_type)
+    if not validator:
+        logger.info(f"任务 {task_id}：产物类型 '{artifact_type}' 无对应校验器，跳过自动校验")
+        return
+    try:
+        content = open(filepath, "r", encoding="utf-8", errors="replace").read()
+    except Exception as e:
+        logger.warning(f"任务 {task_id}：读取产物文件失败 ({e})")
+        models.set_task_validation(task_id, "error", json.dumps([f"文件读取失败：{e}"], ensure_ascii=False))
+        return
+    try:
+        result = validator(content)
+        models.set_task_validation(
+            task_id,
+            "pass" if result.get("pass") else "fail",
+            json.dumps(result.get("reasons", []), ensure_ascii=False))
+        logger.info(f"任务 {task_id}：自动校验 {'通过' if result.get('pass') else '未通过'}，"
+                    f"原因={result.get('reasons')}")
+    except Exception as e:
+        logger.warning(f"任务 {task_id}：校验器异常 ({e})")
+        models.set_task_validation(task_id, "error", json.dumps([f"校验器异常：{e}"], ensure_ascii=False))
 
 
 def review_task(task_id, decision, leader_token, project_id, comment=None):

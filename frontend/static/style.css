@@ -2774,3 +2774,60 @@ body.rail-resizing * {
   justify-content: center;
   font-family: 'JetBrains Mono', monospace;
 }
+
+/* ===== 产物自动校验 ===== */
+.val-badge {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 4px;
+  font-size: 11px;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.val-badge.pass {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.val-badge.fail {
+  background: #fbe9e7;
+  color: #c62828;
+}
+
+.task-validation {
+  margin-top: 4px;
+  padding: 10px 14px;
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.task-validation.pass {
+  background: #e8f5e9;
+  border: 1px solid #c8e6c9;
+}
+
+.task-validation.fail {
+  background: #fff3e0;
+  border: 1px solid #ffe0b2;
+}
+
+.task-validation.error {
+  background: #fce4ec;
+  border: 1px solid #f8bbd0;
+}
+
+.val-head {
+  font-weight: 600;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.val-reasons {
+  list-style: disc;
+  padding-left: 20px;
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 12px;
+  line-height: 1.6;
+}
