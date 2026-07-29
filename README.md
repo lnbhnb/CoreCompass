@@ -3,7 +3,7 @@
 
 **CoreCompass** 是一个面向高校学生团队的**规则护栏型智能体**，采用"确定性状态机 + LLM"的混合架构，把通用 AI 聊天工具"只附和不把关"的痛点转化为可量化的进度约束，让学生团队的大课题从"无从下手"走向"可控交付"。
 
-> **定位说明**：CoreCompass 是一个**智能体**——LLM 在初始拆解、重规划提案两处承担决策，状态机+铁律承担执行，APScheduler 定时巡检承担感知，飞书 webhook 承担反馈。与"纯 LLM Agent"不同，我们用确定性代码约束 LLM 的行为边界，所有状态转移、任务锁定均由代码强制约束，避免 LLM 幻觉影响项目状态。
+> **定位说明**：CoreCompass 是一个**智能体**——LLM 在初始拆解、重规划提案两处承担决策，状态机+铁律承担执行，APScheduler 定时巡检承担感知，飞书 webhook 承担反馈。这是一种**规则护栏型**架构：用确定性代码约束 LLM 的行为边界，所有状态转移、任务锁定均由代码强制约束，避免 LLM 幻觉影响项目状态。
 
 ## 它解决什么问题？
 
@@ -19,7 +19,7 @@
 
 ### 突出点① 任务审阅 + 产物质量保障（反"AI 盲信"）
 
-里程碑完成不再靠"上传一个文件自动校验通过"，而是由**任务审阅流程驱动**：队员提交产物 → 队长审阅通过 → 任务自动 `done` → 系统检查该里程碑下所有任务是否全部完成 → 是则里程碑自动 `done` → 所有里程碑完成则项目自动 `completed`。
+里程碑完成由**任务审阅流程驱动**：队员提交产物 → 队长审阅通过 → 任务自动 `done` → 系统检查该里程碑下所有任务是否全部完成 → 是则里程碑自动 `done` → 所有里程碑完成则项目自动 `completed`。
 
 每个里程碑声明 `expected_artifact_type`（sql / md / code / json / yaml），队员在任务中提交产物时，系统自动运行对应的内置校验器进行结构化检查，校验结果在任务卡片上展示，供队长审阅时参考：
 
@@ -27,8 +27,6 @@
 - **Markdown**：≥500 字、含 ≥3 H2 标题、含"需求/功能/用户"关键词、去重率 < 40%（拒绝凑字数）
 - **Code**：AST 解析、含 ≥2 函数/类定义、函数体非空、源码 ≥50 字符
 - **JSON/YAML**：语法可解析、顶层为对象、必含 `name` 和 `endpoints`
-
-> 不再是"上传一个文件校验通过→里程碑 done"，而是队长审阅通过 + 所有任务完成 → 里程碑完成。校验器作为辅助工具，帮助队长判断产物质量。
 
 ### 突出点② 产能缺口检测（规则驱动，LLM 辅助）
 
@@ -38,7 +36,7 @@
 2. **LLM 层（仅辅助提示）**：把缺口和任务列表喂给大模型，生成砍/降级**建议**（非决策）
 3. **铁律层（最终决策）**：拒绝砍 `core` 任务，强制砍最高工时的 `optional`；LLM 建议不强制采纳
 
-> **智能体定位**：与"AI 全自动决策"不同，CoreCompass 的重规划是**规则层做最终决策**，LLM 仅提供人话化的建议文案，最终是否采纳由队长确认。即使 LLM 失败，规则层仍可独立完成强制砍需求。这一流程对应 Agent 闭环：**感知**（APScheduler 巡检逾期）→ **决策**（规则层算缺口 + LLM 提案）→ **执行**（铁律强制砍 optional）→ **反馈**（飞书推送结果）。
+> **智能体定位**：CoreCompass 的重规划采用**规则层做最终决策**的架构——LLM 仅提供人话化的建议文案，最终是否采纳由队长确认。即使 LLM 失败，规则层仍可独立完成强制砍需求。这一流程对应 Agent 闭环：**感知**（APScheduler 巡检逾期）→ **决策**（规则层算缺口 + LLM 提案）→ **执行**（铁律强制砍 optional）→ **反馈**（飞书推送结果）。
 
 #### 0.6 效率系数依据
 
@@ -100,7 +98,7 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
 |---|---|---|
 | **感知（Perception）** | APScheduler 定时巡检任务逾期、读取项目产能数据 | [notify_service.py](backend/app/services/notify_service.py) |
 | **决策（Decision）** | LLM 在 2 处参与：初始拆解、重规划提案 | [llm/client.py](backend/app/llm/client.py) |
-| **工具调用（Tool Use）** | 状态机、产能计算、知识库匹配、5 类校验器（辅助用） | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
+| **工具调用（Tool Use）** | 状态机、产能计算、知识库匹配、5 类产物自动校验 | [validate_service.py](backend/app/services/validate_service.py) / [state_machine.py](backend/app/state_machine.py) |
 | **执行（Action）** | 强制砍 optional 任务、状态转移、任务审阅流转、自动推进里程碑/项目状态 | [replan_service.py](backend/app/services/replan_service.py) / [review_service.py](backend/app/services/review_service.py) |
 | **反馈（Feedback）** | 飞书 webhook 推送、看板刷新、通知日志 | [notify_service.py](backend/app/services/notify_service.py) |
 | **知识库（Knowledge）** | SDLC 模型 / 开源项目里程碑 / 比赛日程，关键词匹配 + few-shot 注入 Prompt | [knowledge_service.py](backend/app/services/knowledge_service.py) |
@@ -123,7 +121,7 @@ CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定
 [记忆] replan_logs 表记录本次重规划决策链
 ```
 
-> **与"纯 LLM Agent"的差异**：纯 LLM Agent 的决策、执行、记忆全在模型上下文里，幻觉一出来整个流程崩。CoreCompass 把**决策权拆开**——LLM 出建议，规则层做最终决策，状态机强制执行，SQLite 持久记忆。LLM 失控只影响建议文案质量，影响不了项目状态。
+> **规则护栏的设计意图**：CoreCompass 把**决策权拆开**——LLM 出建议，规则层做最终决策，状态机强制执行，SQLite 持久记忆。LLM 失控只影响建议文案质量，影响不了项目状态。
 
 ## 技术架构
 
@@ -365,7 +363,7 @@ CoreCompass 与主流工具的差异：
 | 适配学生竞赛场景 | 通用 | 通用 | 偏工程 | 偏工程 | ✅ 知识库注入赛程 / SDLC / 相似项目 |
 | 校园团队效率系数 | ❌ | ❌ | ❌ | ❌ | ✅ 0.6 校准系数 |
 
-**一句话定位**：CoreCompass 不是 Notion / 飞书 / GitHub Actions 的替代品，而是把它们都没做好的"任务审阅驱动进度 + 进度偏航重规划"环节补齐，专注校园竞赛场景。
+**一句话定位**：CoreCompass 聚焦于「任务审阅驱动进度 + 进度偏航重规划」这两个关键环节，与 Notion / 飞书 / GitHub 等通用工具互补，专注校园竞赛场景的独特需求。
 
 ## 离线降级（Demo 兜底）
 
@@ -392,7 +390,7 @@ CoreCompass 与主流工具的差异：
 
 ## 协作流程的语义边界
 
-里程碑完成由任务审阅流程驱动，不再依赖单独的文件校验：
+里程碑完成由任务审阅流程自动推进：
 
 | 流程 | 责任人 | 关注点 | 结果 |
 |---|---|---|---|
