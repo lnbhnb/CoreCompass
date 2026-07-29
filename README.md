@@ -163,6 +163,24 @@ gap = Σ(est_effort_days × 未完成率) - remaining_days × team_size × 0.6
 
 ## 快速开始
 
+### 方式一：Docker 一键部署（推荐）
+
+```bash
+git clone https://github.com/lnbhnb/CoreCompass.git
+cd CoreCompass
+
+# 填写配置
+cp backend/.env.example backend/.env
+# 编辑 backend/.env，填入 DEEPSEEK_API_KEY 和飞书 webhook（可选）
+
+# 启动
+docker compose up -d
+```
+
+浏览器打开 http://localhost:8000，数据自动持久化在 `backend/data/` 目录。
+
+### 方式二：手动安装
+
 ### 1. 环境准备
 
 - Python 3.10+
