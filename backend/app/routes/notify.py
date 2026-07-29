@@ -38,7 +38,7 @@ def test_notify(project_id=None, authorization: str | None = Header(None)):
 def manual_scan(authorization: str | None = Header(None)):
     """手动触发逾期扫描（需要登录）。"""
     deps.get_current_user(_token(authorization))
-    return notify_service.scan_and_notify_overdue()
+    return notify_service.scan_and_notify_overdue(forced=True)
 
 
 @router.get("/api/notify/scheduler/status")

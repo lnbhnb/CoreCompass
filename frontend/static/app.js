@@ -11,6 +11,78 @@ function app() {
     railWidth: parseInt(localStorage.getItem('cc_rail_w') || '280', 10),
     railDragging: false,
 
+    // —— 新手引导 ——
+    guideOpen: false,
+    guideViewed: JSON.parse(localStorage.getItem('cc_guide_viewed') || '{}'),
+
+    get guideContent() {
+      const guides = {
+        'login': {
+          title: '登录 / 注册',
+          icon: '🔐',
+          steps: [
+            '已有账号直接登录，没有则切换到「注册」创建账号。',
+            '注册后，队长会给你一个 6 位邀请码，在项目列表页输入即可加入团队。'
+          ]
+        },
+        'projects': {
+          title: '我的航行 · 项目列表',
+          icon: '🧭',
+          steps: [
+            '这里列出你参与的所有项目，点击卡片即可进入看板。',
+            '队长：点击「+ 启动新航行」创建项目，AI 会自动拆解任务。',
+            '队员：点击「+ 加入已有航线」，输入队长给的 6 位邀请码。'
+          ]
+        },
+        'create': {
+          title: '启动新航行 · 创建项目',
+          icon: '🚀',
+          steps: [
+            '填写项目名称、截止日期、团队人数和课题描述。',
+            '课题描述越详细、关键词越多，AI 匹配知识库越精准。',
+            '提交后 AI 导航员会自动生成里程碑和任务——这可能要等几秒钟。'
+          ]
+        },
+        'board': {
+          title: '项目看板 · 核心操作区',
+          icon: '🗺️',
+          steps: [
+            '顶部状态栏：一眼看清里程碑进度、任务完成率和剩余天数。',
+            '中间里程碑看板：任务按阶段分组，每张任务卡显示状态、负责人、截止日期。',
+            '队长操作：分配任务 → 审阅产物 → 触发「重规划」让 AI 砍掉低优任务。',
+            '队员操作：认领任务 → 开始执行 → 提交产物文件 → 等待队长审阅通过。',
+            '底部通知日志：查看飞书推送记录，可以手动触发扫描或测试推送。'
+          ]
+        },
+        'members': {
+          'title': '成员进度 · 团队协作',
+          'icon': '👥',
+          'steps': [
+            '队长在这里生成 6 位邀请码（7 天有效），分享给队员加入。',
+            '每位成员的任务统计一目了然：负责 / 完成 / 审阅中 / 待办。',
+            '「待我审阅」区域：队长可以集中处理所有需要审批的产物。'
+          ]
+        }
+      };
+      return guides[this.view] || null;
+    },
+
+    get hasNewGuide() {
+      return this.guideContent && !this.guideViewed[this.view];
+    },
+
+    openGuide() {
+      this.guideOpen = true;
+    },
+
+    closeGuide() {
+      this.guideOpen = false;
+      if (this.view) {
+        this.guideViewed[this.view] = true;
+        localStorage.setItem('cc_guide_viewed', JSON.stringify(this.guideViewed));
+      }
+    },
+
     init() {
       if (this.token) {
         this.fetchUser();

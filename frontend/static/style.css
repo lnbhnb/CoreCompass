@@ -329,11 +329,12 @@ body::after {
   display: flex;
   flex-direction: column;
   gap: 2px;
+  font-size: 15px;
 }
 
 .readout-label {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 15px;
   color: var(--mist);
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -348,7 +349,7 @@ body::after {
 
 .readout-progress {
   font-family: var(--font-mono);
-  font-size: 11px;
+  font-size: 13px;
   color: var(--signal);
 }
 
@@ -365,7 +366,7 @@ body::after {
   padding: 10px 14px;
   color: var(--parchment-dim);
   font-family: var(--font-body);
-  font-size: 13px;
+  font-size: 20px;
   cursor: pointer;
   border-radius: var(--radius);
   border-left: 2px solid transparent;
@@ -387,7 +388,7 @@ body::after {
 
 .footer-coord {
   font-family: var(--font-mono);
-  font-size: 10px;
+  font-size: 15px;
   color: var(--mist);
   letter-spacing: 0.05em;
 }
@@ -2679,4 +2680,97 @@ body.rail-resizing * {
 .projects-view,
 .create-view {
   font-size: 16px;
+}
+
+/* ===== 新手引导浮动按钮 ===== */
+.guide-fab {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 900;
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text-secondary);
+  font-size: 20px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+}
+
+.guide-fab:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.14);
+  border-color: var(--compass);
+  color: var(--text);
+}
+
+.guide-fab.guide-new {
+  border-color: var(--accent);
+  color: var(--accent);
+  box-shadow: 0 2px 16px rgba(212, 160, 67, 0.25);
+  animation: guide-pulse 2.5s ease-in-out infinite;
+}
+
+@keyframes guide-pulse {
+  0%, 100% { box-shadow: 0 2px 16px rgba(212, 160, 67, 0.25); }
+  50% { box-shadow: 0 2px 24px rgba(212, 160, 67, 0.45); }
+}
+
+.guide-dot {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+}
+
+/* ===== 引导弹窗 ===== */
+.guide-modal .modal-body {
+  padding: 20px 24px 16px;
+}
+
+.guide-steps {
+  list-style: none;
+  counter-reset: guide-counter;
+  padding: 0;
+  margin: 0 0 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.guide-steps li {
+  counter-increment: guide-counter;
+  position: relative;
+  padding-left: 36px;
+  font-size: 15px;
+  line-height: 1.6;
+  color: var(--text);
+}
+
+.guide-steps li::before {
+  content: counter(guide-counter, decimal-leading-zero);
+  position: absolute;
+  left: 0;
+  top: 2px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--compass);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: 'JetBrains Mono', monospace;
 }

@@ -144,11 +144,11 @@ def insert_replan_log(pid, gap_days, proposal, applied):
         return cur.lastrowid
 
 
-def insert_notification(pid, type, content, status, response):
+def insert_notification(pid, type, content, status, response, notify_level="normal"):
     with db.get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO notifications(project_id, type, content, status, response) VALUES(?,?,?,?,?)",
-            (pid, type, content, status, response))
+            "INSERT INTO notifications(project_id, type, content, status, response, notify_level) VALUES(?,?,?,?,?,?)",
+            (pid, type, content, status, response, notify_level))
         return cur.lastrowid
 
 
@@ -165,11 +165,19 @@ def list_notifications(pid=None, limit=50):
 
 
 def list_overdue_tasks(pid=None):
-    sql = "SELECT * FROM tasks WHERE status='overdue'"
+    sql = """
+        SELECT t.*, p.name AS project_name,
+               u.display_name AS assignee_name
+        FROM tasks t
+        JOIN projects p ON t.project_id = p.id
+        LEFT JOIN users u ON t.assignee_id = u.id
+        WHERE t.status = 'overdue'
+    """
     params = ()
     if pid:
-        sql += " AND project_id=?"
+        sql += " AND t.project_id=?"
         params = (pid,)
+    sql += " ORDER BY t.due_date ASC"
     with db.get_conn() as conn:
         return [dict(r) for r in conn.execute(sql, params).fetchall()]
 

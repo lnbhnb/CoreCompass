@@ -20,6 +20,8 @@ FIELD_MIGRATIONS = [
     # 项目级飞书 webhook 配置（一项目一群）
     "ALTER TABLE projects ADD COLUMN feishu_webhook_url TEXT",
     "ALTER TABLE projects ADD COLUMN feishu_secret TEXT",
+    # 通知分级（normal / warning / critical）
+    "ALTER TABLE notifications ADD COLUMN notify_level TEXT NOT NULL DEFAULT 'normal'",
 ]
 
 

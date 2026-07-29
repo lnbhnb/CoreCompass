@@ -4,7 +4,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CoreCompass · 校园项目进度护栏</title>
+  <title>CoreCompass · 研程守航官</title>
   <link rel="icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="shortcut icon" type="image/x-icon" href="/static/favicon.ico">
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -46,7 +46,7 @@
           </svg>
           <div class="brand-text">
             <strong>CORE<span>COMPASS</span></strong>
-            <em>校园项目进度护栏</em>
+            <em>研程守航官</em>
           </div>
         </div>
 
@@ -108,6 +108,15 @@
 
     <!-- 右侧主内容区 -->
     <main class="canvas">
+
+      <!-- 新手引导浮动按钮 -->
+      <button class="guide-fab" @click="openGuide()" :class="{ 'guide-new': hasNewGuide }"
+        :title="hasNewGuide ? '有新手指引可查看' : '查看操作指引'">
+        <span x-text="guideContent?.icon || '?'"></span>
+        <template x-if="hasNewGuide">
+          <span class="guide-dot"></span>
+        </template>
+      </button>
       <!-- 登录视图 -->
       <template x-if="view === 'login'">
         <section class="auth-view" x-data="authView($data)">
@@ -704,6 +713,28 @@
             </template>
             <footer class="modal-actions">
               <button class="btn-ghost" @click="closeAssign()" :disabled="assignLoading">取消</button>
+            </footer>
+          </div>
+        </div>
+      </div>
+      <!-- 新手引导弹窗 -->
+      <div x-show="guideOpen" class="modal-overlay" @click.self="closeGuide()" x-cloak>
+        <div class="modal guide-modal">
+          <header class="modal-head">
+            <span class="eyebrow">新手指引</span>
+            <h3>
+              <span x-text="guideContent?.icon"></span>
+              <span x-text="guideContent?.title"></span>
+            </h3>
+          </header>
+          <div class="modal-body">
+            <ol class="guide-steps">
+              <template x-for="(step, idx) in guideContent?.steps || []" :key="idx">
+                <li x-text="step"></li>
+              </template>
+            </ol>
+            <footer class="modal-actions">
+              <button class="btn-accent" @click="closeGuide()">知道了</button>
             </footer>
           </div>
         </div>
