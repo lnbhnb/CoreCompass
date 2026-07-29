@@ -3,7 +3,7 @@ CREATE TABLE IF NOT EXISTS projects (
   name TEXT NOT NULL, deadline TEXT NOT NULL,
   team_size INTEGER NOT NULL, topic_desc TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'active',
-  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS milestones (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -27,7 +27,7 @@ CREATE TABLE IF NOT EXISTS tasks (
 CREATE TABLE IF NOT EXISTS checkins (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   task_id INTEGER NOT NULL REFERENCES tasks(id) ON DELETE CASCADE,
-  note TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  note TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS validation_records (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -35,21 +35,21 @@ CREATE TABLE IF NOT EXISTS validation_records (
   filename TEXT NOT NULL, file_type TEXT NOT NULL,
   result TEXT NOT NULL, fail_reasons TEXT,
   llm_used INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS replan_logs (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   gap_days REAL NOT NULL, proposal TEXT,
   applied INTEGER NOT NULL DEFAULT 0,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS notifications (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER REFERENCES projects(id) ON DELETE CASCADE,
   type TEXT NOT NULL, content TEXT NOT NULL,
   status TEXT NOT NULL DEFAULT 'sent',
-  response TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  response TEXT, created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS users (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -58,14 +58,14 @@ CREATE TABLE IF NOT EXISTS users (
   display_name TEXT NOT NULL,
   token TEXT,
   token_expires_at TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')));
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')));
 
 CREATE TABLE IF NOT EXISTS project_members (
   id INTEGER PRIMARY KEY AUTOINCREMENT,
   project_id INTEGER NOT NULL REFERENCES projects(id) ON DELETE CASCADE,
   user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
   role TEXT NOT NULL DEFAULT 'member',
-  joined_at TEXT NOT NULL DEFAULT (datetime('now')),
+  joined_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   UNIQUE(project_id, user_id));
 
 CREATE TABLE IF NOT EXISTS invite_codes (
@@ -75,5 +75,5 @@ CREATE TABLE IF NOT EXISTS invite_codes (
   used_by_user_id INTEGER REFERENCES users(id),
   fail_count INTEGER NOT NULL DEFAULT 0,
   locked_until TEXT,
-  created_at TEXT NOT NULL DEFAULT (datetime('now')),
+  created_at TEXT NOT NULL DEFAULT (datetime('now','localtime')),
   expires_at TEXT NOT NULL);

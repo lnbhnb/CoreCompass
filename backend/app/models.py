@@ -145,10 +145,11 @@ def insert_replan_log(pid, gap_days, proposal, applied):
 
 
 def insert_notification(pid, type, content, status, response, notify_level="normal"):
+    from datetime import datetime
     with db.get_conn() as conn:
         cur = conn.execute(
-            "INSERT INTO notifications(project_id, type, content, status, response, notify_level) VALUES(?,?,?,?,?,?)",
-            (pid, type, content, status, response, notify_level))
+            "INSERT INTO notifications(project_id, type, content, status, response, notify_level, created_at) VALUES(?,?,?,?,?,?,?)",
+            (pid, type, content, status, response, notify_level, datetime.now().strftime("%Y-%m-%d %H:%M:%S")))
         return cur.lastrowid
 
 
