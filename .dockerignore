@@ -1,0 +1,36 @@
+# Git
+.git
+.gitignore
+
+# Node (前端不需要构建，HTML/CSS/JS 直接 serve)
+node_modules
+package.json
+package-lock.json
+
+# Python
+__pycache__
+*.pyc
+.pytest_cache
+backend/.pytest_cache
+
+# 测试与文档（镜像里不需要）
+backend/tests
+test_samples
+TEST_MANUAL.md
+参赛材料
+参赛要求
+图标
+
+# IDE / 工具
+.reasonix
+.superpowers
+.trae
+.vscode
+.idea
+
+# 运行时数据（通过 volume 挂载，不打进镜像）
+backend/data
+
+# 其他
+e2e_test.js
+方向.txt

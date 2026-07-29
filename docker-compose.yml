@@ -1,0 +1,12 @@
+services:
+  corecompass:
+    build: .
+    container_name: corecompass
+    ports:
+      - "8000:8000"
+    volumes:
+      # SQLite 数据库和上传产物持久化到宿主机
+      - ./backend/data:/app/backend/data
+      # .env 配置文件挂载（评委只需编辑宿主机上的 backend/.env）
+      - ./backend/.env:/app/backend/.env:ro
+    restart: unless-stopped
