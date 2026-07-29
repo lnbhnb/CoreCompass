@@ -186,7 +186,7 @@ cp backend/.env.example backend/.env
 docker compose up -d
 ```
 
-浏览器打开 http://localhost:8000，数据自动持久化在 `backend/data/` 目录。
+浏览器打开 <http://localhost:8000>，数据自动持久化在 `backend/data/` 目录。
 
 ### 方式二：手动安装
 
