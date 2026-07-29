@@ -92,7 +92,7 @@ APScheduler 定时扫描逾期任务，按项目聚合后通过飞书 webhook **
 
 ## 智能体架构
 
-CoreCompass 是一个**规则护栏型智能体**，符合 Agent 的教科书定义：**感知环境 → 自主决策 → 调用工具 → 采取行动**，并额外具备**持久状态**与**反馈闭环**。
+CoreCompass 的 Agent 能力拆解如下：
 
 | Agent 能力 | CoreCompass 实现 | 代码位置 |
 |---|---|---|
