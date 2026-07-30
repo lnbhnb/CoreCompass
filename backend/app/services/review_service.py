@@ -147,7 +147,6 @@ def review_task(task_id, decision, leader_token, project_id, comment=None):
 
 def _notify(project_id, ntype, content):
     """通知：写 DB + 推送飞书（webhook 未配则仅写 DB）。"""
-    models.insert_notification(project_id, ntype, content, "sent", None)
     try:
         notify_service.send_feishu(content, project_id=project_id, msg_type=ntype)
     except Exception:
