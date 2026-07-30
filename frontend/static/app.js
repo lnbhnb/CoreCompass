@@ -213,6 +213,7 @@ function app() {
       this.currentRole = data.current_role;
       const mr = await fetch(`/api/projects/${pid}/members`, { headers: this.authHeaders() });
       this.members = mr.ok ? await mr.json() : [];
+      this.$nextTick(() => this._notifyLog?.load());
     },
 
     // —— 重规划（直接放在 app 根，避免组件挂载时序问题）——

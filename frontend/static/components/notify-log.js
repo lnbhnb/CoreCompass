@@ -6,7 +6,11 @@ function notifyLog(parent) {
     scanResult: null,
 
     async load() {
-      const pid = parent.project?.id || '';
+      const pid = parent.project?.id;
+      if (!pid) {
+        this.logs = [];
+        return;
+      }
       const r = await fetch(`/api/notifications?project_id=${pid}&limit=20`, { headers: parent.authHeaders() });
       this.logs = r.ok ? await r.json() : [];
       await this.loadSchedulerStatus();
@@ -56,6 +60,9 @@ function notifyLog(parent) {
       return s.replace('T', ' ').slice(0, 16);
     },
 
-    init() { this.load(); }
+    init() {
+      parent._notifyLog = this;
+      this.load();
+    }
   }
 }
