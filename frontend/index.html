@@ -593,22 +593,21 @@
           </template>
           <template x-if="!replanLoading && replanProposal">
             <div class="modal-body">
-              <div class="gap-stat">
-                <span class="gap-label">产能缺口</span>
-                <strong class="gap-value" x-text="`${replanGapDays} 人天`"></strong>
+              <div class="gap-summary">
+                <span class="gap-icon">📊</span>
+                <p x-text="replanProposal.summary" style="white-space:pre-line;line-height:1.7"></p>
               </div>
-              <p class="rationale" x-text="replanProposal.rationale"></p>
-              <div class="proposal-block" x-show="replanProposal.cut_tasks?.length">
-                <span class="block-label">建议砍掉</span>
-                <span class="block-value" x-text="replanProposal.cut_tasks?.join(', ')"></span>
+              <div class="proposal-block" x-show="replanProposal.cut_details?.length">
+                <span class="block-label">✂️ 建议砍掉</span>
+                <template x-for="c in replanProposal.cut_details" :key="c.title">
+                  <span class="block-value" x-text="`${c.title}（省约 ${c.saved} 天）`"></span>
+                </template>
               </div>
-              <div class="proposal-block" x-show="replanProposal.downgrade_tasks?.length">
-                <span class="block-label">建议降级</span>
-                <div class="downgrade-list">
-                  <template x-for="d in replanProposal.downgrade_tasks" :key="d.id">
-                    <span class="downgrade-chip" x-text="`#${d.id} ${d.from}→${d.to}`"></span>
-                  </template>
-                </div>
+              <div class="proposal-block" x-show="replanProposal.downgrade_details?.length">
+                <span class="block-label">📐 建议精简</span>
+                <template x-for="d in replanProposal.downgrade_details" :key="d.title">
+                  <span class="block-value" x-text="`${d.title}（省约 ${d.saved} 天）`"></span>
+                </template>
               </div>
               <footer class="modal-actions">
                 <button class="btn-accent" @click="applyReplan()" :disabled="replanApplying">
