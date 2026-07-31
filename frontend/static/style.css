@@ -2184,6 +2184,9 @@ textarea::placeholder {
   display: flex;
   flex-direction: column;
   gap: 18px;
+  max-height: 60vh;
+  overflow-y: auto;
+  padding-right: 4px;
 }
 
 .gap-summary {
